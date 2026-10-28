@@ -44,6 +44,13 @@ func _ready() -> void:
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_fl_setup_multiplayer_lobby()
+	var user_args := OS.get_cmdline_user_args()
+	if "--frontline-server" in user_args:
+		var configured_port := OS.get_environment("FRONTLINE_PORT")
+		if not configured_port.is_empty() and is_instance_valid(_fl_port_input):
+			_fl_port_input.text = configured_port
+		_fl_host_match()
+			print("FRONTLINE_SERVER_READY port=", _fl_read_port(), " protocol=UDP")
 	print("FRONTLINE WORLD READY")
 
 func _process(delta: float) -> void:
