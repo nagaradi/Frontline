@@ -14,6 +14,11 @@ var airdrop_timer := 45.0
 var event_rng := RandomNumberGenerator.new()
 var event_label: Label
 var aim_feedback_timer := 0.0
+var _fl_network_panel: PanelContainer
+var _fl_network_status: Label
+var _fl_address_input: LineEdit
+var _fl_port_input: LineEdit
+var _fl_network_tick := 0.0
 
 func _ready() -> void:
 	event_rng.randomize()
@@ -38,11 +43,19 @@ func _ready() -> void:
 	_fix_hud_layout()
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_fl_setup_multiplayer_lobby()
 	print("FRONTLINE WORLD READY")
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
+	_fl_network_tick += delta
+	if _fl_network_tick >= 0.05:
+		_fl_network_tick = 0.0
+		if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+			var local_id := multiplayer.get_unique_id()
+			if player.get_multiplayer_authority() == local_id:
+				rpc("_fl_receive_player_state", local_id, player.global_position, player.rotation.y)
 	red_zone_timer -= delta
 	airdrop_timer -= delta
 	if red_zone_timer <= 0.0:
@@ -589,3 +602,170 @@ func _add_battlefield_map() -> void:
 	water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	water_mat.roughness = 0.18
 	_add_visual_box(self, "ShallowWater", Vector3(24.0, -0.08, 78.0), Vector3(58.0, 0.08, 8.0), water_mat)
+
+
+# Basic ENet multiplayer lobby. The host must be reachable by other devices.
+func _fl_setup_multiplayer_lobby() -> void:
+	multiplayer.peer_connected.connect(_fl_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_fl_on_peer_disconnected)
+	multiplayer.connected_to_server.connect(_fl_on_connected_to_server)
+	multiplayer.connection_failed.connect(_fl_on_connection_failed)
+	multiplayer.server_disconnected.connect(_fl_on_server_disconnected)
+	var layer := get_node_or_null("MobileUI") as CanvasLayer
+	if layer == null:
+		layer = CanvasLayer.new()
+		layer.name = "MobileUI"
+		add_child(layer)
+	_fl_network_panel = PanelContainer.new()
+	_fl_network_panel.name = "OnlineLobby"
+	_fl_network_panel.position = Vector2(18, 235)
+	_fl_network_panel.custom_minimum_size = Vector2(310, 0)
+	layer.add_child(_fl_network_panel)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	_fl_network_panel.add_child(column)
+	var heading := Label.new()
+	heading.text = "FRONTLINE ONLINE"
+	column.add_child(heading)
+	_fl_address_input = LineEdit.new()
+	_fl_address_input.placeholder_text = "Host IP (e.g. 192.168.1.5)"
+	_fl_address_input.text = ""
+	column.add_child(_fl_address_input)
+	_fl_port_input = LineEdit.new()
+	_fl_port_input.placeholder_text = "Port"
+	_fl_port_input.text = "7777"
+	_fl_port_input.max_length = 5
+	_fl_port_input.input_type = LineEdit.INPUT_TYPE_NUMBER
+	column.add_child(_fl_port_input)
+	var host_button := Button.new()
+	host_button.text = "HOST MATCH (LAN)"
+	host_button.pressed.connect(_fl_host_match)
+	column.add_child(host_button)
+	var join_button := Button.new()
+	join_button.text = "JOIN MATCH"
+	join_button.pressed.connect(_fl_join_match)
+	column.add_child(join_button)
+	var disconnect_button := Button.new()
+	disconnect_button.text = "DISCONNECT"
+	disconnect_button.pressed.connect(_fl_disconnect_match)
+	column.add_child(disconnect_button)
+	_fl_network_status = Label.new()
+	_fl_network_status.text = "Offline practice. Host or join to sync players."
+	_fl_network_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_fl_network_status)
+
+func _fl_read_port() -> int:
+	var port_value := int(_fl_port_input.text.strip_edges())
+	if port_value < 1 or port_value > 65535:
+		return 7777
+	return port_value
+
+func _fl_host_match() -> void:
+	_fl_disconnect_match(false)
+	var peer := ENetMultiplayerPeer.new()
+	var err := peer.create_server(_fl_read_port(), 16)
+	if err != OK:
+		_fl_set_network_status("Host failed (error %d). Check the port." % err)
+		return
+	multiplayer.multiplayer_peer = peer
+	player.set_multiplayer_authority(multiplayer.get_unique_id())
+	_fl_set_network_status("Hosting on port %d. Same Wi-Fi works; internet needs a reachable server/port." % _fl_read_port())
+
+func _fl_join_match() -> void:
+	var address := _fl_address_input.text.strip_edges()
+	if address.is_empty():
+		_fl_set_network_status("Enter the host's IP address first.")
+		return
+	_fl_disconnect_match(false)
+	var peer := ENetMultiplayerPeer.new()
+	var err := peer.create_client(address, _fl_read_port())
+	if err != OK:
+		_fl_set_network_status("Could not start connection (error %d)." % err)
+		return
+	multiplayer.multiplayer_peer = peer
+	_fl_set_network_status("Connecting to %s:%d..." % [address, _fl_read_port()])
+
+func _fl_disconnect_match(update_status: bool = true) -> void:
+	if multiplayer.has_multiplayer_peer():
+		multiplayer.multiplayer_peer.close()
+		multiplayer.multiplayer_peer = null
+	for child in get_children():
+		if child.name.begins_with("RemotePlayer_"):
+			child.queue_free()
+	if is_instance_valid(player):
+		player.set_multiplayer_authority(1)
+	if update_status:
+		_fl_set_network_status("Disconnected. Offline practice is ready.")
+
+func _fl_set_network_status(message: String) -> void:
+	if is_instance_valid(_fl_network_status):
+		_fl_network_status.text = message
+
+func _fl_on_connected_to_server() -> void:
+	player.set_multiplayer_authority(multiplayer.get_unique_id())
+	_fl_set_network_status("Connected to host. Player sync active.")
+
+func _fl_on_connection_failed() -> void:
+	_fl_set_network_status("Connection failed. Check IP, port, Wi-Fi and host availability.")
+	_fl_disconnect_match(false)
+
+func _fl_on_server_disconnected() -> void:
+	_fl_set_network_status("Host disconnected.")
+	_fl_disconnect_match(false)
+
+func _fl_on_peer_connected(peer_id: int) -> void:
+	if peer_id == multiplayer.get_unique_id():
+		return
+	_fl_spawn_remote_player(peer_id)
+	if multiplayer.is_server():
+		var ids: Array[int] = [1]
+		for connected_id in multiplayer.get_peers():
+			ids.append(int(connected_id))
+		rpc("_fl_receive_existing_players", ids)
+		_fl_set_network_status("Hosting. Players connected: %d" % (multiplayer.get_peers().size() + 1))
+
+func _fl_on_peer_disconnected(peer_id: int) -> void:
+	var remote := get_node_or_null("RemotePlayer_%d" % peer_id)
+	if remote != null:
+		remote.queue_free()
+	if multiplayer.is_server():
+		_fl_set_network_status("Hosting. Players connected: %d" % (multiplayer.get_peers().size() + 1))
+
+func _fl_spawn_remote_player(peer_id: int) -> void:
+	if not is_instance_valid(player) or peer_id == multiplayer.get_unique_id():
+		return
+	var node_name := "RemotePlayer_%d" % peer_id
+	if get_node_or_null(node_name) != null:
+		return
+	var remote := player.duplicate(Node.DUPLICATE_USE_INSTANTIATION) as CharacterBody3D
+	if remote == null:
+		return
+	remote.name = node_name
+	add_child(remote)
+	remote.set_multiplayer_authority(peer_id)
+	remote.set_physics_process(false)
+	remote.set_process(false)
+	var remote_camera := remote.get_node_or_null("CameraPivot/SpringArm3D/Camera3D") as Camera3D
+	if remote_camera != null:
+		remote_camera.current = false
+		remote_camera.enabled = false
+	remote.global_position = Vector3(float(peer_id % 4) * 2.0, 0.95, 2.0 + float(peer_id % 3) * 2.0)
+
+@rpc("authority", "call_remote", "reliable")
+func _fl_receive_existing_players(peer_ids: Array) -> void:
+	for raw_id in peer_ids:
+		var peer_id := int(raw_id)
+		if peer_id != multiplayer.get_unique_id():
+			_fl_spawn_remote_player(peer_id)
+
+@rpc("any_peer", "call_remote", "unreliable_ordered")
+func _fl_receive_player_state(peer_id: int, world_position: Vector3, yaw: float) -> void:
+	if peer_id == multiplayer.get_unique_id():
+		return
+	var remote := get_node_or_null("RemotePlayer_%d" % peer_id) as CharacterBody3D
+	if remote == null:
+		_fl_spawn_remote_player(peer_id)
+		remote = get_node_or_null("RemotePlayer_%d" % peer_id) as CharacterBody3D
+	if remote != null:
+		remote.global_position = remote.global_position.lerp(world_position, 0.65)
+		remote.rotation.y = yaw
