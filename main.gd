@@ -35,6 +35,7 @@ func _ready() -> void:
 	_add_world_details()
 	_spawn_weapon_pickups()
 	_fix_hud_layout()
+	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	print("FRONTLINE WORLD READY")
 
