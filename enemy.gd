@@ -1,4 +1,6 @@
 extends CharacterBody3D
+
+const SOLDIER_GEAR = preload("res://soldier_gear.gd")
 ## Lightweight offline enemy AI: chase at long range and fire when the player is visible.
 
 const LOOT_SCRIPT = preload("res://loot_crate.gd")
@@ -21,6 +23,8 @@ func _ready() -> void:
 	add_to_group("enemies")
 	player = get_node_or_null("../Player") as CharacterBody3D
 	soldier = get_node_or_null("character-soldier") as Node3D
+	if soldier != null:
+		SOLDIER_GEAR.apply_to(soldier, true)
 	_try_start_animation()
 
 func _physics_process(delta: float) -> void:
