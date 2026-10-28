@@ -1,6 +1,8 @@
 
 extends CharacterBody3D
 
+const SOLDIER_GEAR = preload("res://soldier_gear.gd")
+
 @export var move_speed: float = 5.0
 @export var gravity: float = 9.8
 @export var shoot_range: float = 100.0
@@ -61,6 +63,7 @@ func _ready() -> void:
 	_update_held_weapon_visual()
 	var soldier_model := get_node_or_null("character-soldier2") as Node3D
 	if soldier_model != null:
+		SOLDIER_GEAR.apply_to(soldier_model, false)
 		soldier_animation_player = _find_animation_player(soldier_model)
 		_update_soldier_animation(false)
 	print("PLAYER READY")
