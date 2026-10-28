@@ -4,7 +4,7 @@ extends Node3D
 @export var max_enemies: int = 5
 @export var spawn_distance: float = 24.0
 
-const ENEMY_SCENE: PackedScene = preload("res://scenes/enemy.tscn")
+const ENEMY_SCENE: PackedScene = preload("res://enemy.tscn")
 var spawn_timer: float = 0.0
 var player: CharacterBody3D
 
