@@ -33,6 +33,7 @@ func _ready() -> void:
 	_setup_ground()
 	_rebuild_buildings()
 	_add_world_details()
+	_add_battlefield_map()
 	_spawn_weapon_pickups()
 	_fix_hud_layout()
 	apply_graphics_preset(false)
@@ -532,3 +533,59 @@ func apply_graphics_preset(high_quality: bool) -> void:
 	if env_node != null and env_node.environment != null:
 		env_node.environment.ambient_light_energy = 0.85 if high_quality else 1.0
 	print("GRAPHICS PRESET: ", "HIGH" if high_quality else "LOW")
+
+
+# Additional low-poly battle-royale map dressing: side roads, an outpost,
+# fenced compounds, sandbags and roadside utility structures.
+func _add_battlefield_map() -> void:
+	var asphalt := _material(Color(0.25, 0.26, 0.24), 0.98)
+	var dirt := _material(Color(0.39, 0.34, 0.24), 1.0)
+	var concrete := _material(Color(0.43, 0.43, 0.39), 0.95)
+	var metal := _material(Color(0.19, 0.25, 0.25), 0.8)
+	var sandbag := _material(Color(0.55, 0.49, 0.34), 1.0)
+	var dark := _material(Color(0.12, 0.15, 0.15), 0.9)
+
+	# Branching roads connect the village with the outer combat area.
+	_add_visual_box(self, "Road_East", Vector3(31.0, 0.018, -12.0), Vector3(70.0, 0.04, 5.0), asphalt)
+	_add_visual_box(self, "Road_South", Vector3(-1.0, 0.02, 28.0), Vector3(5.0, 0.04, 58.0), dirt)
+	_add_visual_box(self, "Road_West", Vector3(-35.0, 0.02, 19.0), Vector3(48.0, 0.04, 4.0), dirt)
+	for x in range(4, 68, 8):
+		_add_visual_box(self, "EastRoadMark_%d" % x, Vector3(float(x), 0.05, -12.0), Vector3(3.0, 0.015, 0.12), _material(Color(0.78, 0.73, 0.56)))
+
+	# Small military checkpoint in the western outskirts.
+	var outpost := Node3D.new()
+	outpost.name = "MilitaryOutpost"
+	outpost.position = Vector3(-72.0, 0.0, 12.0)
+	add_child(outpost)
+	_add_solid(outpost, "CheckpointFloor", Vector3(0.0, 0.08, 0.0), Vector3(19.0, 0.16, 15.0), concrete)
+	_add_solid(outpost, "GuardRoom", Vector3(-4.5, 1.7, -2.0), Vector3(5.5, 3.4, 5.0), metal)
+	_add_solid(outpost, "GuardRoof", Vector3(-4.5, 3.55, -2.0), Vector3(6.0, 0.3, 5.5), dark)
+	_add_solid(outpost, "Container_A", Vector3(5.0, 1.25, -3.0), Vector3(6.0, 2.5, 2.5), _material(Color(0.38, 0.18, 0.13)))
+	_add_solid(outpost, "Container_B", Vector3(5.0, 1.25, 1.0), Vector3(6.0, 2.5, 2.5), _material(Color(0.18, 0.30, 0.24)))
+	_add_solid(outpost, "SandbagLine_A", Vector3(0.0, 0.48, 5.5), Vector3(6.0, 0.96, 0.8), sandbag)
+	_add_solid(outpost, "SandbagLine_B", Vector3(8.0, 0.48, 3.0), Vector3(0.8, 0.96, 4.0), sandbag)
+
+	# Utility poles beside the roads.
+	for i in range(7):
+		var pole := Node3D.new()
+		pole.name = "UtilityPole_%02d" % i
+		pole.position = Vector3(-24.0 + float(i) * 14.0, 0.0, -18.0)
+		add_child(pole)
+		_add_visual_box(pole, "Pole", Vector3(0.0, 3.0, 0.0), Vector3(0.18, 6.0, 0.18), dark)
+		_add_visual_box(pole, "CrossArm", Vector3(0.0, 5.2, 0.0), Vector3(2.0, 0.14, 0.14), dark)
+
+	# Low perimeter walls around a village compound.
+	var wall_mat := _material(Color(0.38, 0.39, 0.34), 0.98)
+	for i in range(5):
+		var px := -49.0 + float(i) * 5.0
+		_add_solid(self, "VillageWall_South_%02d" % i, Vector3(px, 0.55, 45.0), Vector3(4.6, 1.1, 0.32), wall_mat)
+	for i in range(4):
+		var pz := 28.0 + float(i) * 5.0
+		_add_solid(self, "VillageWall_West_%02d" % i, Vector3(-51.5, 0.55, pz), Vector3(0.32, 1.1, 4.6), wall_mat)
+
+	# A shallow water strip beyond the southern road (visual only).
+	var water_mat := StandardMaterial3D.new()
+	water_mat.albedo_color = Color(0.10, 0.28, 0.32, 0.82)
+	water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water_mat.roughness = 0.18
+	_add_visual_box(self, "ShallowWater", Vector3(24.0, -0.08, 78.0), Vector3(58.0, 0.08, 8.0), water_mat)
