@@ -635,7 +635,7 @@ func _fl_setup_multiplayer_lobby() -> void:
 	_fl_port_input.placeholder_text = "Port"
 	_fl_port_input.text = "7777"
 	_fl_port_input.max_length = 5
-	_fl_port_input.input_type = LineEdit.INPUT_TYPE_NUMBER
+	_fl_port_input.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
 	column.add_child(_fl_port_input)
 	var host_button := Button.new()
 	host_button.text = "HOST MATCH (LAN)"
@@ -748,7 +748,6 @@ func _fl_spawn_remote_player(peer_id: int) -> void:
 	var remote_camera := remote.get_node_or_null("CameraPivot/SpringArm3D/Camera3D") as Camera3D
 	if remote_camera != null:
 		remote_camera.current = false
-		remote_camera.enabled = false
 	remote.global_position = Vector3(float(peer_id % 4) * 2.0, 0.95, 2.0 + float(peer_id % 3) * 2.0)
 
 @rpc("authority", "call_remote", "reliable")
