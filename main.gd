@@ -13,6 +13,7 @@ var red_zone_timer := 24.0
 var airdrop_timer := 45.0
 var event_rng := RandomNumberGenerator.new()
 var event_label: Label
+var aim_feedback_timer := 0.0
 
 func _ready() -> void:
 	event_rng.randomize()
@@ -55,7 +56,10 @@ func _process(delta: float) -> void:
 		_spawn_airdrop()
 	if is_instance_valid(event_label):
 		event_label.text = "RED ZONE IN %ds   |   AIRDROP IN %ds" % [int(ceil(red_zone_timer)), int(ceil(airdrop_timer))]
-	_update_aim_feedback()
+	aim_feedback_timer -= delta
+	if aim_feedback_timer <= 0.0:
+		aim_feedback_timer = 0.10
+		_update_aim_feedback()
 
 func _update_aim_feedback() -> void:
 	if not is_instance_valid(camera) or not is_instance_valid(player):
@@ -154,7 +158,7 @@ func _setup_ground() -> void:
 	plane.size = Vector2(WORLD_SIZE, WORLD_SIZE)
 	ground.mesh = plane
 	ground.position = Vector3.ZERO
-	var grass := _material(Color(0.92, 0.96, 0.82), 0.98)	
+	var grass := _material(Color(0.30, 0.40, 0.24), 0.98)	
 	var grass_texture := load("res://assets/Textures/grass_ground.png") as Texture2D
 	if grass_texture != null:
 		grass.albedo_texture = grass_texture
@@ -246,7 +250,7 @@ func _add_world_details() -> void:
 	]
 	var rock_mat := _material(Color(0.34, 0.35, 0.31))
 	# Main road with pale broken centre markings.
-	var road_material := _material(Color(0.88, 0.90, 0.88), 0.96)
+	var road_material := _material(Color(0.22, 0.24, 0.23), 0.96)
 	var road_texture := load("res://assets/Textures/road_asphalt.png") as Texture2D
 	if road_texture != null:
 		road_material.albedo_texture = road_texture
@@ -264,6 +268,7 @@ func _add_world_details() -> void:
 			continue
 		var tree := Node3D.new()
 		tree.name = "Tree_%02d" % i
+		tree.add_to_group("world_detail")
 		tree.position = Vector3(x, 0.0, z)
 		add_child(tree)
 		var trunk := MeshInstance3D.new()
@@ -288,6 +293,7 @@ func _add_world_details() -> void:
 		var z := cos(float(i) * 8.3) * 78.0
 		var hill := MeshInstance3D.new()
 		hill.name = "DistantHill_%02d" % i
+		hill.add_to_group("world_detail")
 		var sphere := SphereMesh.new()
 		sphere.radius = 1.0
 		sphere.height = 2.0
@@ -301,6 +307,7 @@ func _add_world_details() -> void:
 		var radius := 12.0 + float((i * 11) % 68)
 		var rock := MeshInstance3D.new()
 		rock.name = "Rock_%02d" % i
+		rock.add_to_group("world_detail")
 		var rock_mesh := SphereMesh.new()
 		rock_mesh.radius = 0.7
 		rock_mesh.height = 1.0
@@ -507,3 +514,20 @@ func _material(color: Color, roughness: float = 0.9) -> StandardMaterial3D:
 	mat.albedo_color = color
 	mat.roughness = roughness
 	return mat
+
+
+func apply_graphics_preset(high_quality: bool) -> void:
+	# Low preset keeps the map readable while reducing mobile GPU load.
+	var sun := get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+	if sun != null:
+		sun.shadow_enabled = high_quality
+		sun.directional_shadow_max_distance = 90.0 if high_quality else 35.0
+	for detail in get_tree().get_nodes_in_group("world_detail"):
+		if not is_instance_valid(detail):
+			continue
+		if String(detail.name).begins_with("DistantHill_") or String(detail.name).begins_with("Rock_"):
+			detail.visible = high_quality
+	var env_node := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if env_node != null and env_node.environment != null:
+		env_node.environment.ambient_light_energy = 0.85 if high_quality else 1.0
+	print("GRAPHICS PRESET: ", "HIGH" if high_quality else "LOW")
