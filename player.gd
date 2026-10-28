@@ -25,6 +25,8 @@ var smoke_ready: bool = true
 var using_item: bool = false
 var held_weapon_root: Node3D
 var muzzle_flash: MeshInstance3D
+var soldier_animation_player: AnimationPlayer
+var current_animation_name := ""
 
 var weapon_names: Array[String] = ["M416", "AKM", "SCAR-L", "GROZA", "AWM", "PISTOL"]
 # Standard magazine sizes; AWM uses a 5-round magazine in this prototype.
@@ -57,6 +59,10 @@ func _ready() -> void:
 	energy = 60.0
 	add_to_group("players")
 	_update_held_weapon_visual()
+	var soldier_model := get_node_or_null("character-soldier2") as Node3D
+	if soldier_model != null:
+		soldier_animation_player = _find_animation_player(soldier_model)
+		_update_soldier_animation(false)
 	print("PLAYER READY")
 
 
@@ -105,6 +111,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, move_speed * 1.5)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed * 1.5)
 	var soldier := get_node_or_null("character-soldier2") as Node3D
+	_update_soldier_animation(direction.length() > 0.05)
 	if soldier != null:
 		if aiming and pivot != null:
 			var aim_forward := -pivot.global_transform.basis.z
@@ -489,3 +496,26 @@ func _show_hit_marker() -> void:
 	if is_instance_valid(crosshair):
 		crosshair.text = "+"
 		crosshair.add_theme_color_override("font_color", Color.WHITE)
+
+
+func _find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node as AnimationPlayer
+	for child in node.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+func _update_soldier_animation(moving: bool) -> void:
+	if not is_instance_valid(soldier_animation_player):
+		return
+	var clips := soldier_animation_player.get_animation_list()
+	var preferred: Array[String] = ["run", "walk", "move"] if moving else ["idle", "stand"]
+	for wanted in preferred:
+		for clip in clips:
+			if String(clip).to_lower().contains(wanted):
+				if current_animation_name != String(clip):
+					soldier_animation_player.play(clip)
+					current_animation_name = String(clip)
+				return
