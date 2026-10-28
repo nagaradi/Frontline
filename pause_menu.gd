@@ -24,7 +24,8 @@ func _ready() -> void:
 	_build_overlay()
 	_build_settings_overlay()
 	_build_start_menu()
-	get_viewport().size_changed.connect(_layout_pause_button)
+	get_viewport().size_changed.connect(_layout_all_ui)
+	_layout_all_ui()
 	pause_button.visible = false
 	start_overlay.visible = true
 	overlay.visible = false
@@ -61,6 +62,13 @@ func _layout_pause_button() -> void:
 	pause_button.position = Vector2(view_size.x - 72.0, 178.0)
 	pause_button.size = Vector2(54.0, 48.0)
 
+func _layout_all_ui() -> void:
+	_layout_pause_button()
+	for item in get_tree().get_nodes_in_group("frontline_menu_panels"):
+		if item is Control and is_instance_valid(item):
+			var menu_panel := item as Control
+			menu_panel.position = (get_viewport_rect().size - menu_panel.size) * 0.5
+
 func _make_overlay(name: String) -> ColorRect:
 	var layer := ColorRect.new()
 	layer.name = name
@@ -69,6 +77,7 @@ func _make_overlay(name: String) -> ColorRect:
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	layer.z_index = 10
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(layer)
 	return layer
 
@@ -76,9 +85,12 @@ func _make_panel(parent: Control, size: Vector2) -> PanelContainer:
 	var result := PanelContainer.new()
 	result.custom_minimum_size = size
 	result.size = size
-	result.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	result.position = -size / 2.0
+	result.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	result.position = (get_viewport_rect().size - size) * 0.5
 	result.process_mode = Node.PROCESS_MODE_ALWAYS
+	result.mouse_filter = Control.MOUSE_FILTER_STOP
+	result.z_index = 20
+	result.add_to_group("frontline_menu_panels")
 	parent.add_child(result)
 	return result
 
@@ -102,7 +114,9 @@ func _make_action(parent: Control, value: String, callback: Callable) -> Button:
 	button.text = value
 	button.custom_minimum_size = Vector2(250, 48)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.focus_mode = Control.FOCUS_NONE
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.process_mode = Node.PROCESS_MODE_ALWAYS
 	button.pressed.connect(callback)
 	parent.add_child(button)
 	_style_button(button, Color(0.10, 0.20, 0.15, 1.0))
