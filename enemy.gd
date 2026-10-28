@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-const LOOT_SCRIPT = preload("res://scenes/loot_crate.gd")
+const LOOT_SCRIPT = preload("res://loot_crate.gd")
 
 @export var max_health: float = 100.0
 @export var move_speed: float = 2.0
