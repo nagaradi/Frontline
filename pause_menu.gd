@@ -33,6 +33,14 @@ func _ready() -> void:
 	get_tree().paused = true
 
 func _input(event: InputEvent) -> void:
+	# Android touch fallback: route taps directly to visible menu buttons.
+	# This avoids relying on mouse emulation when the SceneTree is paused.
+	if event is InputEventScreenTouch and event.pressed:
+		var touch_position: Vector2 = event.position
+		var handled := _dispatch_menu_touch(touch_position)
+		if handled:
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		if settings_overlay.visible:
 			_close_settings()
@@ -41,6 +49,21 @@ func _input(event: InputEvent) -> void:
 		else:
 			_toggle_pause()
 		get_viewport().set_input_as_handled()
+
+func _dispatch_menu_touch(touch_position: Vector2) -> bool:
+	var buttons := get_tree().get_nodes_in_group("frontline_menu_buttons")
+	# Check topmost buttons first.
+	buttons.reverse()
+	for item in buttons:
+		if not item is Button:
+			continue
+		var button := item as Button
+		if not button.is_visible_in_tree() or button.disabled:
+			continue
+		if button.get_global_rect().has_point(touch_position):
+			button.emit_signal("pressed")
+			return true
+	return false
 
 func _build_pause_button() -> void:
 	pause_button = Button.new()
@@ -117,6 +140,7 @@ func _make_action(parent: Control, value: String, callback: Callable) -> Button:
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.process_mode = Node.PROCESS_MODE_ALWAYS
+	button.add_to_group("frontline_menu_buttons")
 	button.pressed.connect(callback)
 	parent.add_child(button)
 	_style_button(button, Color(0.10, 0.20, 0.15, 1.0))
