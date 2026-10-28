@@ -87,7 +87,10 @@ jobs:
           version/name="1.0"
           package/unique_name="com.example.frontline"
           package/name="Frontline"
-          package/signed=false
+          package/signed=true
+          package/keystore/debug="/home/runner/.android/debug.keystore"
+          package/keystore/debug_user="androiddebugkey"
+          package/keystore/debug_password="android"
           package/app_category=2
           package/retain_data_on_uninstall=false
           package/exclude_from_recents=false
@@ -97,7 +100,12 @@ jobs:
           xr_features/xr_mode=0
           permissions/internet=false
           EOF
-          mkdir -p build "$HOME/.config/godot"
+          mkdir -p build "$HOME/.config/godot" "$HOME/.android"
+          keytool -genkeypair -noprompt -v \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -keyalg RSA -keysize 2048 -validity 10000
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
           [resource]
