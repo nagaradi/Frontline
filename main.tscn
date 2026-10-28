@@ -1,0 +1,377 @@
+[gd_scene format=3 uid="uid://j6u7hgblmhrh"]
+
+[ext_resource type="Script" uid="uid://cvxtqbmmx7siv" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/inventory_label.gd" id="24_inventory"]
+[ext_resource type="Script" path="res://scenes/minimap.gd" id="23_minimap"]
+[ext_resource type="PackedScene" uid="uid://57bdinf8nup3" path="res://assets/character-soldier.glb" id="2_0wfyh"]
+[ext_resource type="Script" uid="uid://ynpdw5hrpfvj" path="res://scenes/player.gd" id="2_sugp2"]
+[ext_resource type="Script" uid="uid://c27amn8t0diq4" path="res://scenes/camera_pivot.gd" id="3_jyhfs"]
+[ext_resource type="Script" uid="uid://bwfj1q5xoe0v2" path="res://scenes/fire_button.gd" id="5_tbgi4"]
+[ext_resource type="Script" uid="uid://cu5iv6k86q22a" path="res://scenes/aim_button.gd" id="6_tefeu"]
+[ext_resource type="PackedScene" uid="uid://c21dhbo0qxkwt" path="res://scenes/enemy.tscn" id="7_o6xl0"]
+[ext_resource type="PackedScene" uid="uid://ct3lb1vf3jvxl" path="res://scenes/mobile_joystick.tscn" id="7_tipki"]
+[ext_resource type="Script" uid="uid://bianmo81j2a3x" path="res://scenes/enemy_health_bar.gd" id="8_85g3d"]
+[ext_resource type="Script" uid="uid://7b2smemhu8k2" path="res://scenes/player_health_bar.gd" id="9_choun"]
+[ext_resource type="Script" uid="uid://ckigvurux3ei6" path="res://scenes/reload_button.gd" id="10_ya4ey"]
+[ext_resource type="Script" uid="uid://1tnoqg3u6326" path="res://scenes/ammo_label.gd" id="11_eb6dy"]
+[ext_resource type="Script" uid="uid://d4amtc1116bw1" path="res://scenes/weapon_switch_button.gd" id="12_trceg"]
+[ext_resource type="Script" uid="uid://cpg53oylfpjk4" path="res://scenes/weapon_label.gd" id="13_a8y0u"]
+[ext_resource type="Script" uid="uid://dspd5xv767mbc" path="res://scenes/pickup_button.gd" id="14_jbj1t"]
+[ext_resource type="Script" uid="uid://xqdkscb4teb3" path="res://scenes/kill_label.gd" id="15_dp3eg"]
+[ext_resource type="Script" uid="uid://c8cf38h32jeuh" path="res://scenes/weapon_pickup.gd" id="15_jkv2x"]
+[ext_resource type="Script" uid="uid://8bgt17ci0hgt" path="res://scenes/grenade_button.gd" id="16_pm3ni"]
+[ext_resource type="Script" uid="uid://ctv4gdtq3wtn8" path="res://scenes/game_manager.gd" id="17_muem4"]
+[ext_resource type="Script" uid="uid://b810touepv8d" path="res://scenes/smoke_button.gd" id="17_y6deb"]
+[ext_resource type="Script" uid="uid://nlgod6eaw267" path="res://scenes/drink_button.gd" id="18_og1vs"]
+[ext_resource type="Script" uid="uid://bxso4rcsr86qx" path="res://scenes/safe_zone.gd" id="19_0ld40"]
+[ext_resource type="Script" uid="uid://xktk2kdi738x" path="res://scenes/first_aid_button.gd" id="19_2wyq8"]
+[ext_resource type="Script" uid="uid://b40t0fmjnfx4t" path="res://scenes/zone_visual.gd" id="20_gqmmt"]
+[ext_resource type="Script" uid="uid://cb7q2e015bhcm" path="res://scenes/med_kit_button.gd" id="20_vxglm"]
+[ext_resource type="Script" uid="uid://f8la0k02x8m0" path="res://scenes/enemy_spawner.gd" id="21_yc10j"]
+[ext_resource type="Script" uid="uid://c7isp5ah7cvlm" path="res://scenes/game_over_ui.gd" id="22_jscy8"]
+[ext_resource type="Script" path="res://scenes/pause_menu.gd" id="25_pause_menu"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_htemk"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jscy8"]
+bg_color = Color(0, 1, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_htemk"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_htemk"]
+radius = 1.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_a8y0u"]
+size = Vector3(0.5, 0.2, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gqmmt"]
+albedo_color = Color(0.040536106, 0.032013856, 0.74754804, 0)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0ld40"]
+top_radius = 40.0
+bottom_radius = 40.0
+height = 0.05
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vxglm"]
+size = Vector2(200, 200)
+
+[sub_resource type="BoxMesh" id="BoxMesh_htemk"]
+size = Vector3(6, 5, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_14cdr"]
+size = Vector3(5, 2, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_14cdr"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_2f3dj"]
+
+[sub_resource type="Sky" id="Sky_yq6so"]
+sky_material = SubResource("ProceduralSkyMaterial_2f3dj")
+
+[sub_resource type="Environment" id="Environment_vxglm"]
+background_mode = 2
+sky = SubResource("Sky_yq6so")
+ambient_light_source = 3
+ambient_light_energy = 0.7
+
+[node name="Main" type="Node3D" unique_id=1081210306]
+script = ExtResource("1")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=884186470]
+script = ExtResource("2_sugp2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=500198834]
+shape = SubResource("CapsuleShape3D_htemk")
+
+[node name="CameraPivot" type="Node3D" parent="Player" unique_id=1062842716]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+script = ExtResource("3_jyhfs")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot" unique_id=1675648251]
+spring_length = 5.0
+
+[node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D" unique_id=1803884232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+fov = 75.0
+
+[node name="character-soldier2" parent="Player" unique_id=2123975301 instance=ExtResource("2_0wfyh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
+metadata/_edit_group_ = true
+
+[node name="MobileUI" type="CanvasLayer" parent="." unique_id=383749065]
+
+[node name="PauseMenu" type="Control" parent="MobileUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("25_pause_menu")
+
+[node name="MiniMap" type="Control" parent="MobileUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -164.0
+offset_top = 16.0
+offset_right = -14.0
+offset_bottom = 166.0
+script = ExtResource("23_minimap")
+
+[node name="FireButton" type="Button" parent="MobileUI" unique_id=285546252]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -480.0
+offset_top = -270.0
+offset_right = -360.0
+offset_bottom = -210.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "FIRE"
+script = ExtResource("5_tbgi4")
+
+[node name="AimButton" type="Button" parent="MobileUI" unique_id=1938823923]
+offset_left = 650.0
+offset_top = 450.0
+offset_right = 770.0
+offset_bottom = 510.0
+text = "AIM"
+script = ExtResource("6_tefeu")
+
+[node name="JoystickButton" type="TouchScreenButton" parent="MobileUI" unique_id=1026680343]
+
+[node name="MobileJoystick" parent="MobileUI" unique_id=433061801 instance=ExtResource("7_tipki")]
+
+[node name="EnemyHealthBar" type="ProgressBar" parent="MobileUI" unique_id=2014696702]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 270.0
+offset_bottom = 47.0
+value = 100.0
+script = ExtResource("8_85g3d")
+
+[node name="PlayerHealthBar" type="ProgressBar" parent="MobileUI" unique_id=420417237]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 270.0
+offset_bottom = 47.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_jscy8")
+value = 100.0
+script = ExtResource("9_choun")
+
+[node name="ReloadButton" type="Button" parent="MobileUI" unique_id=719645233]
+offset_left = 280.0
+offset_top = 100.0
+offset_right = 400.0
+offset_bottom = 155.0
+text = "RELOAD"
+script = ExtResource("10_ya4ey")
+
+[node name="AmmoLabel" type="Label" parent="MobileUI" unique_id=438012121]
+offset_left = 20.0
+offset_top = 90.0
+offset_right = 270.0
+offset_bottom = 125.0
+text = "AMMO: 30 / 120"
+script = ExtResource("11_eb6dy")
+
+[node name="Crosshair" type="Label" parent="MobileUI" unique_id=397416901]
+offset_left = 630.0
+offset_top = 350.0
+offset_right = 670.0
+offset_bottom = 390.0
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaponSwitchButton" type="Button" parent="MobileUI" unique_id=38149438]
+offset_left = 280.0
+offset_top = 165.0
+offset_right = 400.0
+offset_bottom = 220.0
+text = "SWITCH"
+script = ExtResource("12_trceg")
+
+[node name="WeaponLabel" type="Label" parent="MobileUI" unique_id=1014083302]
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 270.0
+offset_bottom = 165.0
+text = "RIFLE"
+script = ExtResource("13_a8y0u")
+
+[node name="InventoryLabel" type="Label" parent="MobileUI"]
+offset_left = 20.0
+offset_top = 170.0
+offset_right = 280.0
+offset_bottom = 225.0
+text = "G 3  SM 3  DR 5\nFA 3  MK 2"
+script = ExtResource("24_inventory")
+
+[node name="PickupButton" type="Button" parent="MobileUI" unique_id=825975477]
+offset_left = 280.0
+offset_top = 230.0
+offset_right = 400.0
+offset_bottom = 285.0
+text = "PICKUP"
+script = ExtResource("14_jbj1t")
+
+[node name="KillLabel" type="Label" parent="MobileUI" unique_id=1046440052]
+offset_left = 20.0
+offset_top = 15.0
+offset_right = 220.0
+offset_bottom = 50.0
+script = ExtResource("15_dp3eg")
+
+[node name="GrenadeButton" type="Button" parent="MobileUI" unique_id=1192637012]
+offset_left = 800.0
+offset_top = 500.0
+offset_right = 940.0
+offset_bottom = 560.0
+text = "GRENADE"
+script = ExtResource("16_pm3ni")
+
+[node name="SmokeButton" type="Button" parent="MobileUI" unique_id=2147426486]
+offset_left = 800.0
+offset_top = 430.0
+offset_right = 940.0
+offset_bottom = 490.0
+text = "SMOKE"
+script = ExtResource("17_y6deb")
+
+[node name="DrinkButton" type="Button" parent="MobileUI" unique_id=1908470416]
+offset_left = 800.0
+offset_top = 360.0
+offset_right = 940.0
+offset_bottom = 420.0
+text = "DRINK"
+script = ExtResource("18_og1vs")
+
+[node name="FirstAidButton" type="Button" parent="MobileUI" unique_id=603768380]
+offset_left = 800.0
+offset_top = 290.0
+offset_right = 940.0
+offset_bottom = 350.0
+text = "FIRST AID"
+script = ExtResource("19_2wyq8")
+
+[node name="MedKitButton" type="Button" parent="MobileUI" unique_id=1188605570]
+offset_left = 800.0
+offset_top = 220.0
+offset_right = 930.0
+offset_bottom = 280.0
+text = "MED KIT"
+script = ExtResource("20_vxglm")
+
+[node name="Enemy" parent="." unique_id=2016691031 groups=["enemies"] instance=ExtResource("7_o6xl0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -10)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Enemy" unique_id=752032988]
+visible = false
+mesh = SubResource("CapsuleMesh_htemk")
+
+[node name="WeaponPickup" type="Area3D" parent="." unique_id=620736439 groups=["ammo_pickups", "weapon_pickups"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.5, -3)
+script = ExtResource("15_jkv2x")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WeaponPickup" unique_id=2066221396]
+shape = SubResource("SphereShape3D_htemk")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WeaponPickup" unique_id=1954717304]
+mesh = SubResource("BoxMesh_a8y0u")
+
+[node name="GameManager" type="Node" parent="." unique_id=1814553727]
+script = ExtResource("17_muem4")
+
+[node name="SafeZone" type="Node3D" parent="." unique_id=1156815857]
+script = ExtResource("19_0ld40")
+
+[node name="ZoneVisual" type="MeshInstance3D" parent="SafeZone" unique_id=878668390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0650253, 0, -2.9257069)
+material_override = SubResource("StandardMaterial3D_gqmmt")
+mesh = SubResource("CylinderMesh_0ld40")
+script = ExtResource("20_gqmmt")
+
+[node name="EnemySpawner" type="Node3D" parent="." unique_id=1786846372]
+script = ExtResource("21_yc10j")
+
+[node name="GameOverUI" type="CanvasLayer" parent="." unique_id=1987376336]
+script = ExtResource("22_jscy8")
+
+[node name="Panel" type="Control" parent="GameOverUI" unique_id=801957135]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TitleLabel" type="Label" parent="GameOverUI/Panel" unique_id=273340319]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="KillsLabel" type="Label" parent="GameOverUI/Panel" unique_id=1122418421]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "KILLS: 0"
+
+[node name="RestartButton" type="Button" parent="GameOverUI/Panel" unique_id=968785818]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=549128961]
+mesh = SubResource("PlaneMesh_vxglm")
+
+[node name="Building1" type="StaticBody3D" parent="." unique_id=597558486]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Building1" unique_id=1988132391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2.5, -5)
+mesh = SubResource("BoxMesh_htemk")
+
+[node name="Building2" type="StaticBody3D" parent="." unique_id=1291601789]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Building2" unique_id=1531417520]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, -8)
+mesh = SubResource("BoxMesh_htemk")
+
+[node name="Building3" type="StaticBody3D" parent="." unique_id=1046994385]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Building3" unique_id=1262102977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.5, 8)
+mesh = SubResource("BoxMesh_htemk")
+
+[node name="CoverWall1" type="StaticBody3D" parent="." unique_id=1494113912]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CoverWall1" unique_id=616901936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3)
+mesh = SubResource("BoxMesh_14cdr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CoverWall1" unique_id=423053620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 0.5)
+shape = SubResource("BoxShape3D_14cdr")
+
+[node name="CoverWall2" type="StaticBody3D" parent="." unique_id=1366871603]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CoverWall2" unique_id=919754458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 8, 3)
+mesh = SubResource("BoxMesh_14cdr")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CoverWall2" unique_id=1142183021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 0.5)
+shape = SubResource("BoxShape3D_14cdr")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1593047086]
+environment = SubResource("Environment_vxglm")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=642300778]
+transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 0, 0)
+light_energy = 1.2

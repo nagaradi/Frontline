@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://ct3lb1vf3jvxl"]
+
+[ext_resource type="Script" uid="uid://c1qo5k7v508ne" path="res://scenes/mobile_joystick.gd" id="1_j4y2l"]
+
+[node name="MobileJoystick" type="Control" unique_id=433061801]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_j4y2l")
+
+[node name="JoystickKnob" type="ColorRect" parent="." unique_id=1221065824]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 450.0
+offset_right = 150.0
+offset_bottom = 510.0
+color = Color(0.41674975, 0.5584696, 0, 1)
+
+[node name="JoystickBase" type="ColorRect" parent="." unique_id=284450245]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 400.0
+offset_right = 200.0
+offset_bottom = 560.0
+color = Color(0.25050953, 0.31263828, 0.2919287, 1)
