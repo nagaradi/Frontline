@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 	_fl_network_tick += delta
 	if _fl_network_tick >= 0.05:
 		_fl_network_tick = 0.0
-		if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		if multiplayer.has_multiplayer_peer() and (multiplayer.is_server() or multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED):
 			var local_id := multiplayer.get_unique_id()
 			if player.get_multiplayer_authority() == local_id:
 				rpc("_fl_receive_player_state", local_id, player.global_position, player.rotation.y)
