@@ -1,0 +1,42 @@
+FRONTLINE - ANDROID APK EXPORT GUIDE (HINDI)
+=============================================
+
+IMPORTANT:
+Yeh Godot project hai, APK file nahi. Is package mein Android APK export ke liye guide aur helper script hai.
+Is environment mein Godot editor + Android export templates + Android SDK/JDK available nahi the, isliye yahan se compiled APK banana possible nahi hua.
+APK banane ke liye ye steps apne Windows 11 PC par ek baar karne honge.
+
+STEP 1 - Project import
+1. ZIP ko ek naye folder mein Extract karein.
+2. Godot 4.7.2 kholein.
+3. Import par click karke is folder ke project.godot ko select karein.
+4. Project open hone ke baad agar red error aaye, pehle us error ko fix karein.
+
+STEP 2 - Export templates install
+1. Godot mein Editor > Manage Export Templates kholein.
+2. Godot 4.7.2 ke matching export templates install karein.
+3. Agar download/installation error aaye, uska screenshot bhejein.
+
+STEP 3 - Android SDK/JDK setup
+1. Editor > Editor Settings mein Export > Android section kholein.
+2. Godot ke Android export setup instructions ke mutabik OpenJDK aur Android SDK install/set karein.
+3. Godot ko SDK/JDK ke paths detect karne dein. Missing path warning ho to usko pehle fix karein.
+
+STEP 4 - Android export preset
+1. Project > Export kholein.
+2. Add... par click karke Android preset add karein.
+3. Preset ka naam Android hi rakhein, taaki helper script usko pehchan sake.
+4. Debug APK ke liye keval local testing use karein; Play Store ke liye signed release build alag hota hai.
+5. Export Project par click karke `Frontline-debug.apk` save karein.
+
+HELPER SCRIPT
+- BUILD_ANDROID_DEBUG.bat ko project folder mein run kar sakte hain, lekin pehle Godot export preset ka naam Android hona aur Android SDK/templates configured hona zaroori hai.
+- Script Godot command-line export chalane ki koshish karegi.
+- Agar Godot command PATH mein nahi hai, Godot Console executable ko PATH mein add karein ya script mein GODOT_EXE path update karein.
+- Agar export fail ho, command window ka pehla error text copy karke bhejein.
+
+PROJECT STATUS
+- ZIP archive ki integrity check ki gayi.
+- Project resources ke paths check kiye gaye.
+- Godot runtime test aur APK compilation is environment mein nahi ki gayi; isliye APK install/run hone ka dawa nahi hai.
+- Original v7/v11 ZIP ko backup ke roop mein rakhein.
