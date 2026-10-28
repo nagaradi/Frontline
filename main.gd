@@ -44,6 +44,7 @@ func _ready() -> void:
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_fl_setup_multiplayer_lobby()
+	_start_drop_intro()
 	var user_args := OS.get_cmdline_user_args()
 	if "--frontline-server" in user_args:
 		var configured_port := OS.get_environment("FRONTLINE_PORT")
@@ -775,3 +776,123 @@ func _fl_receive_player_state(peer_id: int, world_position: Vector3, yaw: float)
 	if remote != null:
 		remote.global_position = remote.global_position.lerp(world_position, 0.65)
 		remote.rotation.y = yaw
+
+
+# Opening drop sequence: board a transport plane, fly over the map, then parachute
+# to a playable landing spot. This is a scripted intro, not a real aircraft simulation.
+var _drop_intro_started := false
+var _drop_intro_label: Label
+var _drop_intro_plane: Node3D
+var _drop_intro_canopy: Node3D
+
+func _start_drop_intro() -> void:
+	if _drop_intro_started or not is_instance_valid(player):
+		return
+	_drop_intro_started = true
+	player.set_physics_process(false)
+	player.velocity = Vector3.ZERO
+	var ui := get_node_or_null("MobileUI") as CanvasLayer
+	if ui != null:
+		_drop_intro_label = Label.new()
+		_drop_intro_label.name = "DropIntroLabel"
+		_drop_intro_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		_drop_intro_label.offset_top = 24.0
+		_drop_intro_label.offset_bottom = 68.0
+		_drop_intro_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_drop_intro_label.add_theme_font_size_override("font_size", 24)
+		_drop_intro_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.65))
+		ui.add_child(_drop_intro_label)
+	_build_drop_plane()
+	call_deferred("_run_drop_intro")
+
+func _build_drop_plane() -> void:
+	_drop_intro_plane = Node3D.new()
+	_drop_intro_plane.name = "OpeningTransportPlane"
+	add_child(_drop_intro_plane)
+	var fuselage := _intro_box(_drop_intro_plane, "Fuselage", Vector3(0, 0, 0), Vector3(2.2, 1.5, 12.0), Color(0.24, 0.29, 0.25))
+	_intro_box(_drop_intro_plane, "LeftWing", Vector3(-5.0, 0.0, 0.2), Vector3(8.0, 0.22, 3.2), Color(0.31, 0.35, 0.29))
+	_intro_box(_drop_intro_plane, "RightWing", Vector3(5.0, 0.0, 0.2), Vector3(8.0, 0.22, 3.2), Color(0.31, 0.35, 0.29))
+	_intro_box(_drop_intro_plane, "TailWing", Vector3(0, 1.0, 4.7), Vector3(4.0, 0.18, 1.8), Color(0.27, 0.32, 0.27))
+	_intro_box(_drop_intro_plane, "TailFin", Vector3(0, 1.7, 4.7), Vector3(0.22, 1.5, 1.6), Color(0.27, 0.32, 0.27))
+	_intro_box(_drop_intro_plane, "Nose", Vector3(0, -0.05, -6.0), Vector3(1.4, 1.0, 1.2), Color(0.18, 0.22, 0.20))
+	_drop_intro_plane.position = Vector3(0, 50, -85)
+	player.global_position = Vector3(0, 51.2, -85)
+
+func _intro_box(parent: Node3D, node_name: String, pos: Vector3, dimensions: Vector3, color: Color) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	node.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = dimensions
+	node.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.82
+	node.material_override = material
+	node.position = pos
+	parent.add_child(node)
+	return node
+
+func _run_drop_intro() -> void:
+	if not is_instance_valid(player) or not is_instance_valid(_drop_intro_plane):
+		return
+	if is_instance_valid(_drop_intro_label):
+		_drop_intro_label.text = "FRONTLINE  •  TRANSPORT PLANE"
+	# Eight seconds of flight over the map.
+	var plane_tween := create_tween()
+	plane_tween.set_parallel(true)
+	plane_tween.tween_property(_drop_intro_plane, "position", Vector3(0, 50, 72), 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	plane_tween.tween_property(player, "global_position", Vector3(0, 51.2, 72), 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await plane_tween.finished
+	if not is_inside_tree() or not is_instance_valid(player):
+		return
+	if is_instance_valid(_drop_intro_label):
+		_drop_intro_label.text = "PARACHUTE DEPLOYED  •  LANDING"
+	_drop_intro_plane.queue_free()
+	_build_drop_parachute()
+	# Glide to a chosen landing point, taking the total opening sequence to about 25 seconds.
+	var landing := Vector3(18.0, 0.95, -12.0)
+	var glide := create_tween()
+	glide.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	glide.tween_property(player, "global_position", landing, 15.0)
+	await glide.finished
+	if not is_inside_tree() or not is_instance_valid(player):
+		return
+	player.global_position = landing
+	player.velocity = Vector3.ZERO
+	if is_instance_valid(_drop_intro_canopy):
+		_drop_intro_canopy.queue_free()
+	_drop_intro_canopy = null
+	player.set_physics_process(true)
+	if is_instance_valid(_drop_intro_label):
+		_drop_intro_label.text = "LANDED  •  MATCH START"
+		await get_tree().create_timer(2.0).timeout
+		if is_instance_valid(_drop_intro_label):
+			_drop_intro_label.queue_free()
+
+func _build_drop_parachute() -> void:
+	_drop_intro_canopy = Node3D.new()
+	_drop_intro_canopy.name = "ParachuteCanopy"
+	_drop_intro_canopy.position = Vector3(0, 4.8, 0)
+	player.add_child(_drop_intro_canopy)
+	var canopy := MeshInstance3D.new()
+	canopy.name = "Canopy"
+	var sphere := SphereMesh.new()
+	sphere.radius = 2.6
+	sphere.height = 1.5
+	canopy.mesh = sphere
+	canopy.scale = Vector3(1.0, 0.36, 0.82)
+	var canopy_mat := StandardMaterial3D.new()
+	canopy_mat.albedo_color = Color(0.85, 0.19, 0.12)
+	canopy_mat.roughness = 0.78
+	canopy.material_override = canopy_mat
+	_drop_intro_canopy.add_child(canopy)
+	for x in [-1.5, -0.5, 0.5, 1.5]:
+		var line := MeshInstance3D.new()
+		var line_mesh := CylinderMesh.new()
+		line_mesh.top_radius = 0.018
+		line_mesh.bottom_radius = 0.018
+		line_mesh.height = 3.2
+		line.mesh = line_mesh
+		line.material_override = _material(Color(0.85, 0.85, 0.78))
+		line.position = Vector3(float(x) * 0.65, -1.55, 0)
+		_drop_intro_canopy.add_child(line)
