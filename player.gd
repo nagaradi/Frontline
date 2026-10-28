@@ -70,6 +70,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
+		return
 	shot_timer = maxf(shot_timer - delta, 0.0)
 
 	if not is_on_floor():
