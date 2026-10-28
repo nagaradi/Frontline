@@ -25,16 +25,16 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          yes | sdkmanager --licenses
-
-      - name: Install Godot 4.7.2 and Android export templates
+      - name: Accept Android SDK licenses and install packages
         shell: bash
         run: |
-          set -e
-          GODOT_VERSION="4.7.2"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Download Godot 4.7.2 and Android export templates
+        shell: bash
+        run: |
+          set -euxo pipefail
           mkdir -p "$HOME/godot" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
           wget -q "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -O "$HOME/godot/godot.zip"
           unzip -q "$HOME/godot/godot.zip" -d "$HOME/godot"
@@ -45,7 +45,7 @@ jobs:
           unzip -q "$HOME/godot/templates.tpz" -d "$HOME/godot/templates"
           cp -a "$HOME/godot/templates/templates/." "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
 
-      - name: Configure Android export preset
+      - name: Configure Android export preset and SDK paths
         shell: bash
         run: |
           cat > export_presets.cfg <<'EOF'
@@ -70,8 +70,8 @@ jobs:
           custom_template/release=""
           gradle_build/use_gradle_build=false
           gradle_build/export_format=0
-          gradle_build/min_sdk=""
-          gradle_build/target_sdk=""
+          gradle_build/min_sdk="26"
+          gradle_build/target_sdk="35"
           architectures/armeabi-v7a=false
           architectures/arm64-v8a=true
           architectures/x86=false
@@ -80,7 +80,7 @@ jobs:
           version/name="1.0"
           package/unique_name="com.example.frontline"
           package/name="Frontline"
-          package/signed=true
+          package/signed=false
           package/app_category=2
           package/retain_data_on_uninstall=false
           package/exclude_from_recents=false
@@ -90,20 +90,26 @@ jobs:
           xr_features/xr_mode=0
           permissions/internet=false
           EOF
-          mkdir -p build
-          mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<EOF
+          mkdir -p build "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
           [resource]
           export/android/android_sdk_path = "$ANDROID_HOME"
           export/android/java_sdk_path = "$JAVA_HOME"
           EOF
 
-      - name: Import Godot project
-        run: "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" --headless --editor --path . --quit
+      - name: Import Godot project resources
+        shell: bash
+        run: |
+          "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" --headless --editor --path . --import
+          "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" --headless --editor --path . --quit
 
-      - name: Export debug APK
-        run: "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" --headless --path . --export-debug "Android" build/Frontline-debug.apk
+      - name: Export Android debug APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" --headless --path . --export-debug "Android" build/Frontline-debug.apk
+          test -s build/Frontline-debug.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
