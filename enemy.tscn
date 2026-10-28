@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://c21dhbo0qxkwt"]
 
-[ext_resource type="Script" path="res://scenes/enemy.gd" id="1_enemy"]
-[ext_resource type="PackedScene" path="res://assets/character-soldier.glb" id="2_soldier"]
+[ext_resource type="Script" path="res://enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://character-soldier.glb" id="2_soldier"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
 radius = 0.4
