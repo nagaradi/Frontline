@@ -1,0 +1,34 @@
+name: Validate Frontline Server Container
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+      - '*.gd'
+      - '*.tscn'
+      - '*.tres'
+      - '*.godot'
+      - 'assets/**'
+      - '.github/workflows/server-container.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-server-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Frontline
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build headless server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: server/Dockerfile
+          push: false
+          tags: frontline-server:ci
