@@ -3,8 +3,8 @@ extends Node3D
 ## Uses the existing scene's Player, Enemy, SafeZone and MobileUI nodes; does not spawn duplicates.
 
 const WORLD_SIZE := 260.0
-const LOOT_SCRIPT := preload("res://scenes/loot_crate.gd")
-const GUN_PICKUP_SCRIPT := preload("res://scenes/gun_pickup.gd")
+const LOOT_SCRIPT := preload("res://loot_crate.gd")
+const GUN_PICKUP_SCRIPT := preload("res://gun_pickup.gd")
 
 var player: CharacterBody3D
 var camera: Camera3D
