@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ct3lb1vf3jvxl"]
 
-[ext_resource type="Script" uid="uid://c1qo5k7v508ne" path="res://scenes/mobile_joystick.gd" id="1_j4y2l"]
+[ext_resource type="Script" uid="uid://c1qo5k7v508ne" path="res://mobile_joystick.gd" id="1_j4y2l"]
 
 [node name="MobileJoystick" type="Control" unique_id=433061801]
 layout_mode = 3
