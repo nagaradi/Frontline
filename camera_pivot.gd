@@ -18,23 +18,21 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	# Mobile camera-look gesture: begin in the clear middle-right area,
-	# away from the joystick and the lower/right action buttons.
+	# Use most of the right side for camera look. The previous narrow zone
+	# made camera movement unreliable on different phone aspect ratios.
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			var view_size := get_viewport().get_visible_rect().size
 			var p: Vector2 = event.position
 			var in_look_area := (
-				p.x >= view_size.x * 0.42
-				and p.x <= view_size.x * 0.72
-				and p.y >= view_size.y * 0.14
-				and p.y <= view_size.y * 0.66
+				p.x >= view_size.x * 0.38
+				and p.y >= view_size.y * 0.08
+				and p.y <= view_size.y * 0.88
 			)
 			if in_look_area:
 				camera_touch_ids[event.index] = true
 		else:
 			camera_touch_ids.erase(event.index)
-
 	elif event is InputEventScreenDrag and camera_touch_ids.has(event.index):
 		_rotate_camera(event.relative * touch_sensitivity)
 
