@@ -145,6 +145,24 @@ func _spawn_weapon_pickups() -> void:
 		add_child(pickup)
 		pickup.global_position = data["pos"]
 
+	# Distribute every remaining PUBG Lite-style weapon as loot across settlements.
+	if is_instance_valid(player):
+		var weapon_list: Array = player.get("weapon_names")
+		var village_centers: Array[Vector3] = [
+			Vector3(-62,0,-58), Vector3(0,0,-70), Vector3(62,0,-58), Vector3(-72,0,0),
+			Vector3(72,0,0), Vector3(-62,0,60), Vector3(0,0,72), Vector3(62,0,60)
+		]
+		for index in range(6, weapon_list.size()):
+			var center: Vector3 = village_centers[index % village_centers.size()]
+			var angle := float(index) * 2.399963
+			var loot_pos := center + Vector3(cos(angle) * 5.5, 0.0, sin(angle) * 5.5)
+			var pickup := GUN_PICKUP_SCRIPT.new() as Area3D
+			pickup.name = "GunPickup_" + str(weapon_list[index])
+			pickup.set("weapon_name", str(weapon_list[index]))
+			pickup.set("weapon_index", index)
+			add_child(pickup)
+			pickup.global_position = loot_pos
+
 func _setup_environment() -> void:
 	var world_env := get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if world_env == null:
