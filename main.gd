@@ -207,12 +207,12 @@ func _rebuild_buildings() -> void:
 	var trim := _material(Color(0.28, 0.29, 0.27))
 	var roof := _material(Color(0.20, 0.22, 0.21))
 	var positions: Array[Vector3] = [
-		# Keep the first village buildings close to the normal landing point,
-		# inside the camera's forward view so the map is immediately visible.
-		Vector3(-9, 0, -13), Vector3(10, 0, -17), Vector3(-19, 0, -27),
-		Vector3(22, 0, -30), Vector3(-30, 0, -5), Vector3(34, 0, -12),
-		Vector3(-35, 0, 20), Vector3(-12, 0, 35), Vector3(58, 0, 28),
-		Vector3(-58, 0, -42), Vector3(50, 0, -62), Vector3(-42, 0, 58)
+		# A compact starter village surrounds the landing point so buildings
+		# are visible even if the mobile camera is facing a different direction.
+		Vector3(-9, 0, 1), Vector3(9, 0, 1), Vector3(-9, 0, 16),
+		Vector3(9, 0, 16), Vector3(-20, 0, -8), Vector3(20, 0, -8),
+		Vector3(-22, 0, 25), Vector3(22, 0, 25), Vector3(38, 0, 8),
+		Vector3(-38, 0, 8), Vector3(50, 0, -24), Vector3(-50, 0, -24)
 	]
 	for i in positions.size():
 		_make_open_building("House_%02d" % (i + 1), positions[i], 8.0 if i % 2 == 0 else 7.0, 4.2 if i % 3 == 0 else 3.7, 7.0, wall, trim, roof)
