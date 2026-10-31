@@ -37,10 +37,13 @@ func _ready() -> void:
 	_setup_environment()
 	_setup_ground()
 	_rebuild_buildings()
+	_add_eight_villages()
 	_add_world_details()
 	_add_battlefield_map()
 	_spawn_weapon_pickups()
 	_fix_hud_layout()
+	_add_scope_button()
+	_round_mobile_buttons(get_node_or_null("MobileUI"))
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_fl_setup_multiplayer_lobby()
@@ -897,3 +900,88 @@ func _build_drop_parachute() -> void:
 		line.material_override = _material(Color(0.85, 0.85, 0.78))
 		line.position = Vector3(float(x) * 0.65, -1.55, 0)
 		_drop_intro_canopy.add_child(line)
+
+
+func _add_eight_villages() -> void:
+	# Eight named settlements distributed around the playable 260m map.
+	var village_data: Array[Dictionary] = [
+		{"name":"RAHLAI","center":Vector3(-62,0,-58)},
+		{"name":"MUNDLA","center":Vector3(0,0,-70)},
+		{"name":"BISOTI","center":Vector3(62,0,-58)},
+		{"name":"SHIVPURA","center":Vector3(-72,0,0)},
+		{"name":"KISHANGARH","center":Vector3(72,0,0)},
+		{"name":"RAMPURA","center":Vector3(-62,0,60)},
+		{"name":"DEVNAGAR","center":Vector3(0,0,72)},
+		{"name":"SUNDARPURA","center":Vector3(62,0,60)}
+	]
+	var wall := _material(Color(0.58,0.52,0.42))
+	var trim := _material(Color(0.29,0.30,0.27))
+	var roof := _material(Color(0.25,0.22,0.19))
+	for village in village_data:
+		var center: Vector3 = village["center"]
+		var settlement := Node3D.new()
+		settlement.name = "Village_" + str(village["name"])
+		settlement.add_to_group("villages")
+		add_child(settlement)
+		settlement.position = center
+		for i in range(6):
+			var angle := float(i) * TAU / 6.0
+			var offset := Vector3(cos(angle) * 10.0, 0.0, sin(angle) * 9.0)
+			_make_open_building("House_%02d" % (i + 1), center + offset, 6.0 if i % 2 == 0 else 7.0, 3.6, 6.0, wall, trim, roof)
+		var sign := Label3D.new()
+		sign.name = "VillageName"
+		sign.text = str(village["name"])
+		sign.font_size = 48
+		sign.pixel_size = 0.012
+		sign.modulate = Color(1.0, 0.91, 0.62)
+		sign.outline_size = 8
+		sign.position = center + Vector3(0.0, 5.2, -17.0)
+		add_child(sign)
+
+func _add_scope_button() -> void:
+	var ui := get_node_or_null("MobileUI") as CanvasLayer
+	if ui == null or ui.get_node_or_null("ScopeButton") != null:
+		return
+	var button := Button.new()
+	button.name = "ScopeButton"
+	button.text = "1x"
+	button.custom_minimum_size = Vector2(68, 68)
+	button.anchor_left = 1.0
+	button.anchor_right = 1.0
+	button.anchor_top = 1.0
+	button.anchor_bottom = 1.0
+	button.offset_left = -250.0
+	button.offset_right = -182.0
+	button.offset_top = -190.0
+	button.offset_bottom = -122.0
+	button.add_theme_font_size_override("font_size", 22)
+	button.pressed.connect(_on_scope_button_pressed)
+	ui.add_child(button)
+
+func _on_scope_button_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("cycle_scope"):
+		player.cycle_scope()
+
+func _round_mobile_buttons(root: Node) -> void:
+	if root == null:
+		return
+	for child in root.get_children():
+		if child is Button:
+			var normal := StyleBoxFlat.new()
+			normal.bg_color = Color(0.045, 0.075, 0.09, 0.88)
+			normal.corner_radius_top_left = 28
+			normal.corner_radius_top_right = 28
+			normal.corner_radius_bottom_left = 28
+			normal.corner_radius_bottom_right = 28
+			normal.border_width_left = 2
+			normal.border_width_top = 2
+			normal.border_width_right = 2
+			normal.border_width_bottom = 2
+			normal.border_color = Color(0.72, 0.82, 0.76, 0.9)
+			child.add_theme_stylebox_override("normal", normal)
+			var hover := normal.duplicate() as StyleBoxFlat
+			hover.bg_color = Color(0.12, 0.20, 0.19, 0.96)
+			child.add_theme_stylebox_override("hover", hover)
+			child.add_theme_stylebox_override("pressed", hover)
+			child.add_theme_font_size_override("font_size", 17)
+		_round_mobile_buttons(child)
