@@ -51,7 +51,7 @@ func _ready() -> void:
 		if not configured_port.is_empty() and is_instance_valid(_fl_port_input):
 			_fl_port_input.text = configured_port
 		_fl_host_match()
-			print("FRONTLINE_SERVER_READY port=", _fl_read_port(), " protocol=UDP")
+		print("FRONTLINE_SERVER_READY port=", _fl_read_port(), " protocol=UDP")
 	print("FRONTLINE WORLD READY")
 
 func _process(delta: float) -> void:
