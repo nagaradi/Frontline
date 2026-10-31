@@ -207,9 +207,11 @@ func _rebuild_buildings() -> void:
 	var trim := _material(Color(0.28, 0.29, 0.27))
 	var roof := _material(Color(0.20, 0.22, 0.21))
 	var positions: Array[Vector3] = [
-		Vector3(18, 0, -18), Vector3(-22, 0, -25), Vector3(28, 0, 12),
-		Vector3(-30, 0, 15), Vector3(8, 0, -42), Vector3(42, 0, -35),
-		Vector3(-45, 0, -8), Vector3(-12, 0, 35), Vector3(58, 0, 28),
+		# Keep the first village buildings close to the normal landing point,
+		# inside the camera's forward view so the map is immediately visible.
+		Vector3(-9, 0, -13), Vector3(10, 0, -17), Vector3(-19, 0, -27),
+		Vector3(22, 0, -30), Vector3(-30, 0, -5), Vector3(34, 0, -12),
+		Vector3(-35, 0, 20), Vector3(-12, 0, 35), Vector3(58, 0, 28),
 		Vector3(-58, 0, -42), Vector3(50, 0, -62), Vector3(-42, 0, 58)
 	]
 	for i in positions.size():
@@ -850,7 +852,7 @@ func _run_drop_intro() -> void:
 	_drop_intro_plane.queue_free()
 	_build_drop_parachute()
 	# Glide to a chosen landing point, taking the total opening sequence to about 25 seconds.
-	var landing := Vector3(18.0, 0.95, -12.0)
+	var landing := Vector3(0.0, 0.95, 8.0)
 	var glide := create_tween()
 	glide.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	glide.tween_property(player, "global_position", landing, 15.0)
