@@ -15,7 +15,7 @@ var energy: float = 60.0
 var sprinting: bool = false
 var aiming: bool = false
 var scope_level: int = 0
-var scope_magnifications: Array[float] = [1.0, 2.0, 3.0, 6.0]
+var scope_magnifications: Array[float] = [1.0, 2.0, 3.0, 4.0, 6.0, 8.0]
 # Limited survival inventory; loot crates can replenish these items.
 var grenades: int = 3
 var smoke_grenades: int = 3
