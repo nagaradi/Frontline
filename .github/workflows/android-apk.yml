@@ -1,3 +1,4 @@
+# Android APK build workflow (not the server-container workflow).
 name: Build Frontline Android APK
 
 on:
