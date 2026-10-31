@@ -14,6 +14,8 @@ var health: float = 100.0
 var energy: float = 60.0
 var sprinting: bool = false
 var aiming: bool = false
+var scope_level: int = 0
+var scope_magnifications: Array[float] = [1.0, 2.0, 3.0, 6.0]
 # Limited survival inventory; loot crates can replenish these items.
 var grenades: int = 3
 var smoke_grenades: int = 3
@@ -30,18 +32,18 @@ var muzzle_flash: MeshInstance3D
 var soldier_animation_player: AnimationPlayer
 var current_animation_name := ""
 
-var weapon_names: Array[String] = ["M416", "AKM", "SCAR-L", "GROZA", "AWM", "PISTOL"]
-# Standard magazine sizes; AWM uses a 5-round magazine in this prototype.
-var magazine_sizes: Array[int] = [30, 30, 30, 30, 5, 12]
-var damages: Array[float] = [24.0, 28.0, 23.0, 29.0, 90.0, 20.0]
-var fire_delays: Array[float] = [0.10, 0.13, 0.10, 0.09, 1.05, 0.30]
+var weapon_names: Array[String] = ["M416", "AKM", "SCAR-L", "GROZA", "AWM", "PISTOL", "M16A4", "UMP45", "Vector", "UZI", "DP-28", "M249", "Mini14", "SKS", "Kar98k", "S686", "QBZ", "G36C", "AUG", "Beryl M762", "Mk47 Mutant", "Tommy Gun", "Bizon", "SLR", "QBU", "Mk14", "M24", "Win94", "S1897", "S12K", "P92", "P1911", "R1895", "P18C", "Skorpion", "Crossbow"]
+# PUBG Lite-style weapon roster; values are prototype balance settings.
+var magazine_sizes: Array[int] = [30, 30, 30, 30, 5, 12, 30, 25, 25, 25, 47, 100, 20, 20, 5, 2, 30, 30, 30, 30, 20, 30, 53, 10, 10, 10, 5, 8, 5, 5, 15, 7, 7, 17, 20, 1]
+var damages: Array[float] = [24.00, 28.00, 23.00, 29.00, 90.00, 20.00, 23.00, 35.00, 31.00, 23.00, 47.00, 45.00, 44.00, 53.00, 75.00, 95.00, 23.00, 24.00, 23.00, 28.00, 48.00, 40.00, 35.00, 56.00, 48.00, 60.00, 79.00, 66.00, 95.00, 22.00, 20.00, 32.00, 55.00, 19.00, 22.00, 100.00]
+var fire_delays: Array[float] = [0.100, 0.130, 0.100, 0.090, 1.050, 0.300, 0.100, 0.090, 0.060, 0.070, 0.120, 0.075, 0.100, 0.120, 1.300, 0.750, 0.100, 0.100, 0.090, 0.090, 0.100, 0.090, 0.080, 0.100, 0.100, 0.090, 1.300, 0.350, 0.750, 0.250, 0.220, 0.250, 0.400, 0.080, 0.120, 1.200]
 var reload_times: Array[float] = [2.1, 2.4, 2.0, 2.0, 3.6, 1.5]
 
 var weapon_index: int = 0
 # Start with M416 and Pistol. Other rifles become available when picked up.
-var unlocked_weapons: Array[bool] = [true, false, false, false, false, true]
+var unlocked_weapons: Array[bool] = []
 var ammo_by_weapon: Array[int] = [30, 30, 30, 30, 5, 12]
-var reserve_by_weapon: Array[int] = [120, 120, 120, 120, 25, 48]
+var reserve_by_weapon: Array[int] = []
 
 var ammo: int:
 	get:
@@ -59,6 +61,15 @@ var reserve_ammo: int:
 func _ready() -> void:
 	health = max_health
 	energy = 60.0
+	if unlocked_weapons.is_empty():
+		unlocked_weapons.resize(weapon_names.size())
+		reserve_by_weapon.resize(weapon_names.size())
+		for i in range(weapon_names.size()):
+			unlocked_weapons[i] = i == 0 or i == 5
+			reserve_by_weapon[i] = magazine_sizes[i] * 4
+		ammo_by_weapon.resize(weapon_names.size())
+		for i in range(weapon_names.size()):
+			ammo_by_weapon[i] = magazine_sizes[i]
 	add_to_group("players")
 	_update_held_weapon_visual()
 	var soldier_model := get_node_or_null("character-soldier2") as Node3D
@@ -137,6 +148,21 @@ func set_aiming(enabled: bool) -> void:
 	aiming = enabled
 	if aiming:
 		sprinting = false
+	_apply_scope_camera()
+
+func cycle_scope() -> void:
+	scope_level = (scope_level + 1) % scope_magnifications.size()
+	_apply_scope_camera()
+
+func _apply_scope_camera() -> void:
+	var cam := get_node_or_null("CameraPivot/SpringArm3D/Camera3D") as Camera3D
+	if cam == null:
+		return
+	var magnification: float = scope_magnifications[scope_level] if aiming else 1.0
+	cam.fov = clampf(75.0 / magnification, 12.0, 75.0)
+	var ui := get_node_or_null("../MobileUI/ScopeButton") as Button
+	if ui != null:
+		ui.text = "1x" if scope_level == 0 else str(int(scope_magnifications[scope_level])) + "x"
 
 
 func take_damage(amount: float) -> void:
