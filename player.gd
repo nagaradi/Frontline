@@ -22,6 +22,16 @@ var smoke_grenades: int = 3
 var energy_drinks: int = 5
 var first_aid_kits: int = 3
 var medkits: int = 2
+var backpack_level: int = 1
+var backpack_used: int = 0
+
+func upgrade_backpack() -> void:
+	if backpack_level < 3:
+		backpack_level += 1
+		print("BACKPACK LEVEL: ", backpack_level)
+	else:
+		print("BACKPACK ALREADY LEVEL 3")
+
 var reloading: bool = false
 var shot_timer: float = 0.0
 var grenade_ready: bool = true
