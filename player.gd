@@ -112,6 +112,10 @@ func _physics_process(delta: float) -> void:
 
 	var wants_sprint := sprinting or Input.is_key_pressed(KEY_SHIFT)
 	var current_speed := move_speed
+	if crouching:
+		current_speed *= 0.58
+	if prone:
+		current_speed *= 0.28
 	if aiming:
 		current_speed *= 0.78
 	if wants_sprint and direction.length() > 0.05 and not aiming:
@@ -142,6 +146,37 @@ func _physics_process(delta: float) -> void:
 
 func set_sprinting(enabled: bool) -> void:
 	sprinting = enabled
+
+var crouching: bool = false
+var prone: bool = false
+var peek_direction: float = 0.0
+
+func jump() -> void:
+	if is_on_floor() and health > 0.0:
+		velocity.y = 5.2
+		crouching = false
+		prone = false
+
+func toggle_crouch() -> void:
+	crouching = not crouching
+	if crouching:
+		prone = false
+		sprinting = false
+
+func toggle_prone() -> void:
+	prone = not prone
+	if prone:
+		crouching = false
+		sprinting = false
+
+func set_peek(direction: float) -> void:
+	peek_direction = clampf(direction, -1.0, 1.0)
+	var pivot := get_node_or_null("CameraPivot") as Node3D
+	if pivot != null:
+		pivot.rotation.z = deg_to_rad(-8.0 * peek_direction)
+
+func reset_peek() -> void:
+	set_peek(0.0)
 
 
 func set_aiming(enabled: bool) -> void:
