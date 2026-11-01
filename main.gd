@@ -191,31 +191,48 @@ func _setup_environment() -> void:
 	sun.directional_shadow_max_distance = 90.0
 
 func _setup_ground() -> void:
-	var ground := get_node_or_null("Ground") as MeshInstance3D
-	if ground == null:
-		ground = MeshInstance3D.new()
-		ground.name = "Ground"
-		add_child(ground)
+	# Remove old nodes immediately; queue_free can leave a duplicate-name Ground2.
+	var old_ground := get_node_or_null("Ground")
+	if old_ground != null:
+		remove_child(old_ground)
+		old_ground.free()
+	var ground := MeshInstance3D.new()
+	ground.name = "Ground"
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(WORLD_SIZE, WORLD_SIZE)
+	plane.subdivide_width = 8
+	plane.subdivide_depth = 8
 	ground.mesh = plane
-	ground.position = Vector3.ZERO
-	var grass := _material(Color(0.30, 0.40, 0.24), 0.98)	
+	ground.position = Vector3(0.0, -0.12, 0.0)
+	ground.visible = true
+	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var grass := StandardMaterial3D.new()
+	grass.albedo_color = Color(0.24, 0.34, 0.19, 1.0)
+	grass.roughness = 1.0
+	grass.metallic = 0.0
+	grass.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var grass_texture := load("res://assets/Textures/grass_ground.png") as Texture2D
 	if grass_texture != null:
 		grass.albedo_texture = grass_texture
-	grass.uv1_scale = Vector3(28.0, 28.0, 28.0)
+		grass.uv1_scale = Vector3(32.0, 32.0, 1.0)
 	ground.material_override = grass
-	if get_node_or_null("GroundCollision") == null:
-		var body := StaticBody3D.new()
-		body.name = "GroundCollision"
-		body.position.y = -0.25
-		add_child(body)
-		var collision := CollisionShape3D.new()
-		var shape := BoxShape3D.new()
-		shape.size = Vector3(WORLD_SIZE, 0.5, WORLD_SIZE)
-		collision.shape = shape
-		body.add_child(collision)
+	add_child(ground)
+
+	var old_collision := get_node_or_null("GroundCollision")
+	if old_collision != null:
+		remove_child(old_collision)
+		old_collision.free()
+	var body := StaticBody3D.new()
+	body.name = "GroundCollision"
+	body.position = Vector3(0.0, -0.38, 0.0)
+	body.collision_layer = 1
+	body.collision_mask = 1
+	add_child(body)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(WORLD_SIZE, 0.5, WORLD_SIZE)
+	collision.shape = shape
+	body.add_child(collision)
 
 func _rebuild_buildings() -> void:
 	for old_name in ["Building1", "Building2", "Building3", "CoverWall1", "CoverWall2"]:
