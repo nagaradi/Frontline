@@ -469,20 +469,18 @@ func _fix_hud_layout() -> void:
 	event_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	event_label.add_theme_font_size_override("font_size", 18)
 	event_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.48))
-	# Large thumb-friendly controls in two columns.
-	var right_x := w - 164.0
-	var mid_x := w - 322.0
+	# PUBG Lite-inspired landscape HUD: left movement, right combat cluster.
 	var button_positions := {
-		"MedKitButton": Vector2(right_x, h * 0.30),
-		"FirstAidButton": Vector2(mid_x, h * 0.30),
-		"DrinkButton": Vector2(right_x, h * 0.39),
-		"SmokeButton": Vector2(mid_x, h * 0.39),
-		"GrenadeButton": Vector2(right_x, h * 0.48),
-		"PickupButton": Vector2(mid_x, h * 0.48),
-		"ReloadButton": Vector2(right_x, h * 0.57),
-		"WeaponSwitchButton": Vector2(mid_x, h * 0.57),
-		"AimButton": Vector2(w - 322.0, h - 90.0),
-		"FireButton": Vector2(w - 166.0, h - 100.0)
+		"MedKitButton": Vector2(w - 250.0, h - 300.0),
+		"FirstAidButton": Vector2(w - 340.0, h - 300.0),
+		"DrinkButton": Vector2(w - 250.0, h - 220.0),
+		"SmokeButton": Vector2(w - 340.0, h - 220.0),
+		"GrenadeButton": Vector2(w - 250.0, h - 140.0),
+		"PickupButton": Vector2(w - 340.0, h - 140.0),
+		"ReloadButton": Vector2(w - 160.0, h - 210.0),
+		"WeaponSwitchButton": Vector2(w - 250.0, h - 60.0),
+		"AimButton": Vector2(w - 340.0, h - 104.0),
+		"FireButton": Vector2(w - 165.0, h - 120.0)
 	}
 	for button_name in button_positions:
 		var button := ui.get_node_or_null(button_name) as Button
@@ -490,7 +488,7 @@ func _fix_hud_layout() -> void:
 			continue
 		button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		button.position = button_positions[button_name]
-		var round_size := Vector2(82, 82) if button_name in ["FireButton", "AimButton"] else Vector2(68, 68) if button_name == "ScopeButton" else Vector2(146, 56)
+		var round_size := Vector2(92, 92) if button_name in ["FireButton", "AimButton"] else Vector2(68, 68) if button_name == "ScopeButton" else Vector2(72, 72)
 		button.size = round_size
 		button.custom_minimum_size = round_size
 		button.add_theme_font_size_override("font_size", 18)
@@ -499,7 +497,7 @@ func _fix_hud_layout() -> void:
 		normal.bg_color = Color(0.055, 0.075, 0.085, 0.86)
 		normal.border_color = Color(0.72, 0.78, 0.70, 0.95)
 		normal.set_border_width_all(2)
-		normal.set_corner_radius_all(12)
+		normal.set_corner_radius_all(int(minf(round_size.x, round_size.y) * 0.5))
 		button.add_theme_stylebox_override("normal", normal)
 		var hover := normal.duplicate() as StyleBoxFlat
 		hover.bg_color = Color(0.16, 0.23, 0.18, 0.96)
@@ -509,14 +507,19 @@ func _fix_hud_layout() -> void:
 		button.add_theme_stylebox_override("pressed", pressed)
 	var fire := ui.get_node_or_null("FireButton") as Button
 	if fire != null:
-		fire.size = Vector2(158, 82)
-		fire.position = Vector2(w - 166.0, h - 98.0)
-		fire.add_theme_font_size_override("font_size", 25)
+		fire.size = Vector2(104, 104)
+		fire.custom_minimum_size = fire.size
+		fire.position = Vector2(w - 132.0, h - 150.0)
+		fire.text = "FIRE"
+		fire.add_theme_font_size_override("font_size", 20)
+		fire.z_index = 50
+		fire.mouse_filter = Control.MOUSE_FILTER_STOP
 	var aim := ui.get_node_or_null("AimButton") as Button
 	if aim != null:
-		aim.size = Vector2(146, 68)
-		aim.position = Vector2(w - 322.0, h - 90.0)
-		aim.add_theme_font_size_override("font_size", 22)
+		aim.size = Vector2(82, 82)
+		aim.custom_minimum_size = aim.size
+		aim.position = Vector2(w - 250.0, h - 105.0)
+		aim.add_theme_font_size_override("font_size", 18)
 	var crosshair := ui.get_node_or_null("Crosshair") as Label
 	if crosshair != null:
 		crosshair.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
