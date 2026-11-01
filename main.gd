@@ -47,6 +47,7 @@ func _ready() -> void:
 	_add_scope_button()
 	_round_mobile_buttons(get_node_or_null("MobileUI"))
 	_add_hud_settings()
+	_add_battle_royale_controls()
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_fl_setup_multiplayer_lobby()
@@ -546,6 +547,181 @@ func _fix_hud_layout() -> void:
 	sprint_style.set_border_width_all(2)
 	sprint_style.set_corner_radius_all(12)
 	sprint.add_theme_stylebox_override("normal", sprint_style)
+
+func _add_battle_royale_controls() -> void:
+	var ui := get_node_or_null("MobileUI") as CanvasLayer
+	if ui == null:
+		return
+	var size := get_viewport().get_visible_rect().size
+	_add_action_button(ui, "JumpButton", "JUMP", Vector2(size.x - 126.0, size.y - 270.0), Vector2(76, 76), _on_jump_pressed)
+	_add_action_button(ui, "CrouchButton", "CROUCH", Vector2(size.x - 215.0, size.y - 205.0), Vector2(70, 70), _on_crouch_pressed)
+	_add_action_button(ui, "ProneButton", "PRONE", Vector2(size.x - 126.0, size.y - 185.0), Vector2(70, 70), _on_prone_pressed)
+	_add_action_button(ui, "PeekLeftButton", "◀ PEEK", Vector2(size.x - 350.0, size.y - 205.0), Vector2(76, 58), _on_peek_left_down, true)
+	_add_action_button(ui, "PeekRightButton", "PEEK ▶", Vector2(size.x - 350.0, size.y - 140.0), Vector2(76, 58), _on_peek_right_down, true)
+	_add_action_button(ui, "MapButton", "MAP", Vector2(size.x - 178.0, 178.0), Vector2(64, 58), _on_map_pressed)
+	_add_action_button(ui, "BagButton", "BAG", Vector2(24.0, size.y - 100.0), Vector2(72, 72), _on_bag_pressed)
+	_add_action_button(ui, "PlayerNameButton", "NAME", Vector2(24.0, 218.0), Vector2(82, 48), _on_name_pressed)
+	_add_action_button(ui, "DriveButton", "DRIVE", Vector2(size.x - 260.0, size.y * 0.48), Vector2(88, 58), _on_vehicle_pressed)
+	_add_action_button(ui, "GetInButton", "GET IN", Vector2(size.x - 165.0, size.y * 0.48), Vector2(88, 58), _on_vehicle_pressed)
+	_add_action_button(ui, "ExitButton", "EXIT", Vector2(size.x - 165.0, size.y * 0.58), Vector2(88, 58), _on_exit_vehicle_pressed)
+	_add_action_button(ui, "EyeButton", "EYE", Vector2(size.x - 250.0, size.y - 290.0), Vector2(68, 68), _on_eye_pressed)
+	_add_player_name_panel(ui)
+	_add_backpack_panel(ui)
+	# Vehicle actions remain hidden until a drivable vehicle is actually implemented nearby.
+	for vehicle_button in ["DriveButton", "GetInButton", "ExitButton"]:
+		var vb := ui.get_node_or_null(vehicle_button) as Button
+		if vb != null:
+			vb.visible = false
+
+func _add_action_button(ui: CanvasLayer, node_name: String, caption: String, pos: Vector2, button_size: Vector2, callback: Callable, hold: bool = false) -> void:
+	if ui.get_node_or_null(node_name) != null:
+		return
+	var button := Button.new()
+	button.name = node_name
+	button.text = caption
+	button.position = pos
+	button.size = button_size
+	button.custom_minimum_size = button_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.z_index = 45
+	_style_round_button(button, minf(button_size.x, button_size.y) * 0.5)
+	ui.add_child(button)
+	if hold:
+		button.button_down.connect(callback)
+		button.button_up.connect(_on_peek_release)
+	else:
+		button.pressed.connect(callback)
+
+func _style_round_button(button: Button, radius: float) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.045, 0.075, 0.09, 0.88)
+	style.border_color = Color(0.72, 0.82, 0.76, 0.92)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(int(radius))
+	button.add_theme_stylebox_override("normal", style)
+	var pressed := style.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.18, 0.27, 0.20, 0.98)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_font_size_override("font_size", 14)
+
+func _on_jump_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("jump"):
+		player.jump()
+
+func _on_crouch_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("toggle_crouch"):
+		player.toggle_crouch()
+		var b := get_node_or_null("MobileUI/CrouchButton") as Button
+		if b != null:
+			b.text = "STAND" if player.crouching else "CROUCH"
+
+func _on_prone_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("toggle_prone"):
+		player.toggle_prone()
+		var b := get_node_or_null("MobileUI/ProneButton") as Button
+		if b != null:
+			b.text = "STAND" if player.prone else "PRONE"
+
+func _on_peek_left_down() -> void:
+	if is_instance_valid(player) and player.has_method("set_peek"):
+		player.set_peek(-1.0)
+
+func _on_peek_right_down() -> void:
+	if is_instance_valid(player) and player.has_method("set_peek"):
+		player.set_peek(1.0)
+
+func _on_peek_release() -> void:
+	if is_instance_valid(player) and player.has_method("reset_peek"):
+		player.reset_peek()
+
+func _on_map_pressed() -> void:
+	var map := get_node_or_null("MobileUI/MiniMap") as Control
+	if map != null:
+		map.visible = not map.visible
+
+func _add_player_name_panel(ui: CanvasLayer) -> void:
+	if ui.get_node_or_null("PlayerNamePanel") != null:
+		return
+	var panel := PanelContainer.new()
+	panel.name = "PlayerNamePanel"
+	panel.position = Vector2(18, 268)
+	panel.custom_minimum_size = Vector2(190, 0)
+	panel.visible = false
+	ui.add_child(panel)
+	var row := HBoxContainer.new()
+	panel.add_child(row)
+	var edit := LineEdit.new()
+	edit.name = "PlayerNameEdit"
+	edit.placeholder_text = "Player name"
+	edit.text = "Player"
+	edit.custom_minimum_size = Vector2(130, 42)
+	row.add_child(edit)
+	var save := Button.new()
+	save.text = "OK"
+	save.pressed.connect(func():
+		var label := ui.get_node_or_null("PlayerNameLabel") as Label
+		if label == null:
+			label = Label.new()
+			label.name = "PlayerNameLabel"
+			label.position = Vector2(18, 236)
+			ui.add_child(label)
+		label.text = edit.text.strip_edges() if not edit.text.strip_edges().is_empty() else "Player"
+		panel.visible = false
+	)
+	row.add_child(save)
+
+func _on_name_pressed() -> void:
+	var panel := get_node_or_null("MobileUI/PlayerNamePanel") as Control
+	if panel != null:
+		panel.visible = not panel.visible
+
+func _add_backpack_panel(ui: CanvasLayer) -> void:
+	if ui.get_node_or_null("BackpackPanel") != null:
+		return
+	var panel := PanelContainer.new()
+	panel.name = "BackpackPanel"
+	panel.position = Vector2(20, 310)
+	panel.custom_minimum_size = Vector2(245, 230)
+	panel.visible = false
+	panel.z_index = 55
+	ui.add_child(panel)
+	var column := VBoxContainer.new()
+	panel.add_child(column)
+	var title := Label.new()
+	title.text = "BACKPACK  •  LEVEL 1"
+	column.add_child(title)
+	for item in ["Weapons: M416 / Pistol", "Ammo: current weapon", "First Aid / Med Kit", "Grenade / Smoke", "Energy Drink"]:
+		var label := Label.new()
+		label.text = item
+		column.add_child(label)
+	var close := Button.new()
+	close.text = "CLOSE"
+	close.pressed.connect(func(): panel.visible = false)
+	column.add_child(close)
+
+func _on_bag_pressed() -> void:
+	var panel := get_node_or_null("MobileUI/BackpackPanel") as Control
+	if panel != null:
+		panel.visible = not panel.visible
+
+func _on_vehicle_pressed() -> void:
+	var ui := get_node_or_null("MobileUI")
+	var label := ui.get_node_or_null("VehicleStatusLabel") as Label
+	if label == null:
+		label = Label.new()
+		label.name = "VehicleStatusLabel"
+		label.position = Vector2(400, 210)
+		label.text = "No vehicle nearby"
+		ui.add_child(label)
+	label.visible = true
+
+func _on_exit_vehicle_pressed() -> void:
+	_on_vehicle_pressed()
+
+func _on_eye_pressed() -> void:
+	if is_instance_valid(player) and is_instance_valid(camera_pivot):
+		camera_pivot.rotation.y += deg_to_rad(25.0)
 
 func _start_sprint() -> void:
 	if is_instance_valid(player) and player.has_method("set_sprinting"):
