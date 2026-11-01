@@ -610,18 +610,6 @@ func _add_action_button(ui: CanvasLayer, node_name: String, caption: String, pos
 	else:
 		button.pressed.connect(callback)
 
-func _style_round_button(button: Button, radius: float) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.045, 0.075, 0.09, 0.88)
-	style.border_color = Color(0.72, 0.82, 0.76, 0.92)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(int(radius))
-	button.add_theme_stylebox_override("normal", style)
-	var pressed := style.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.18, 0.27, 0.20, 0.98)
-	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_font_size_override("font_size", 14)
-
 func _on_jump_pressed() -> void:
 	if is_instance_valid(player) and player.has_method("jump"):
 		player.jump()
