@@ -2,7 +2,7 @@ extends Node3D
 ## Frontline world setup and lightweight battle-royale events.
 ## Uses the existing scene's Player, Enemy, SafeZone and MobileUI nodes; does not spawn duplicates.
 
-const WORLD_SIZE := 260.0
+const WORLD_SIZE := 1260.0
 const LOOT_SCRIPT := preload("res://loot_crate.gd")
 const GUN_PICKUP_SCRIPT := preload("res://gun_pickup.gd")
 
