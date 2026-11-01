@@ -9,8 +9,10 @@ const GUN_PICKUP_SCRIPT := preload("res://gun_pickup.gd")
 var player: CharacterBody3D
 var camera: Camera3D
 var camera_pivot: Node3D
-var red_zone_timer := 24.0
-var airdrop_timer := 45.0
+var red_zone_timer := 180.0
+var airdrop_timer := 180.0
+var match_elapsed := 0.0
+const MATCH_DURATION := 900.0
 var event_rng := RandomNumberGenerator.new()
 var event_label: Label
 var aim_feedback_timer := 0.0
@@ -67,21 +69,15 @@ func _process(delta: float) -> void:
 			var local_id := multiplayer.get_unique_id()
 			if player.get_multiplayer_authority() == local_id:
 				rpc("_fl_receive_player_state", local_id, player.global_position, player.rotation.y)
-	red_zone_timer -= delta
+	match_elapsed += delta
+	red_zone_timer = maxf(180.0 - match_elapsed, 0.0)
 	airdrop_timer -= delta
-	if red_zone_timer <= 0.0:
-		red_zone_timer = event_rng.randf_range(28.0, 40.0)
-		var angle := event_rng.randf_range(0.0, TAU)
-		var distance := event_rng.randf_range(10.0, 28.0)
-		var strike_pos := player.global_position + Vector3(cos(angle) * distance, 0.0, sin(angle) * distance)
-		strike_pos.x = clampf(strike_pos.x, -82.0, 82.0)
-		strike_pos.z = clampf(strike_pos.z, -82.0, 82.0)
-		_red_zone_strike(strike_pos)
 	if airdrop_timer <= 0.0:
-		airdrop_timer = 75.0
+		airdrop_timer = 180.0
 		_spawn_airdrop()
 	if is_instance_valid(event_label):
-		event_label.text = "RED ZONE IN %ds   |   AIRDROP IN %ds" % [int(ceil(red_zone_timer)), int(ceil(airdrop_timer))]
+		var zone_text := "ZONE SHRINK IN %ds" % int(ceil(red_zone_timer)) if match_elapsed < 180.0 else "ZONE SHRINKING"
+		event_label.text = "%s   |   AIRDROP IN %ds   |   MATCH %02d:%02d" % [zone_text, int(ceil(airdrop_timer)), int(match_elapsed / 60.0), int(match_elapsed) % 60]
 	aim_feedback_timer -= delta
 	if aim_feedback_timer <= 0.0:
 		aim_feedback_timer = 0.10
@@ -859,11 +855,11 @@ func _run_drop_intro() -> void:
 		return
 	if is_instance_valid(_drop_intro_label):
 		_drop_intro_label.text = "FRONTLINE  •  TRANSPORT PLANE"
-	# Eight seconds of flight over the map.
+	# Twenty seconds of visible transport flight before parachuting.
 	var plane_tween := create_tween()
 	plane_tween.set_parallel(true)
-	plane_tween.tween_property(_drop_intro_plane, "position", Vector3(0, 50, 72), 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	plane_tween.tween_property(player, "global_position", Vector3(0, 51.2, 72), 8.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	plane_tween.tween_property(_drop_intro_plane, "position", Vector3(0, 50, 72), 20.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	plane_tween.tween_property(player, "global_position", Vector3(0, 51.2, 72), 20.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await plane_tween.finished
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
@@ -875,7 +871,7 @@ func _run_drop_intro() -> void:
 	var landing := Vector3(0.0, 0.95, 8.0)
 	var glide := create_tween()
 	glide.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	glide.tween_property(player, "global_position", landing, 15.0)
+	glide.tween_property(player, "global_position", landing, 20.0)
 	await glide.finished
 	if not is_inside_tree() or not is_instance_valid(player):
 		return
@@ -923,14 +919,14 @@ func _build_drop_parachute() -> void:
 func _add_eight_villages() -> void:
 	# Eight named settlements distributed around the playable 260m map.
 	var village_data: Array[Dictionary] = [
-		{"name":"RAHLAI","center":Vector3(-62,0,-58)},
-		{"name":"MUNDLA","center":Vector3(0,0,-70)},
-		{"name":"BISOTI","center":Vector3(62,0,-58)},
-		{"name":"SHIVPURA","center":Vector3(-72,0,0)},
-		{"name":"KISHANGARH","center":Vector3(72,0,0)},
-		{"name":"RAMPURA","center":Vector3(-62,0,60)},
-		{"name":"DEVNAGAR","center":Vector3(0,0,72)},
-		{"name":"SUNDARPURA","center":Vector3(62,0,60)}
+		{"name":"POCHINKI","center":Vector3(-62,0,-58)},
+		{"name":"ROZHOK","center":Vector3(0,0,-70)},
+		{"name":"SCHOOL","center":Vector3(62,0,-58)},
+		{"name":"GEORGOPOL","center":Vector3(-72,0,0)},
+		{"name":"YASNAYA POLYANA","center":Vector3(72,0,0)},
+		{"name":"GATKA","center":Vector3(-62,0,60)},
+		{"name":"PRIMORSK","center":Vector3(0,0,72)},
+		{"name":"LIPOVKA","center":Vector3(62,0,60)}
 	]
 	var wall := _material(Color(0.58,0.52,0.42))
 	var trim := _material(Color(0.29,0.30,0.27))
@@ -942,10 +938,11 @@ func _add_eight_villages() -> void:
 		settlement.add_to_group("villages")
 		add_child(settlement)
 		settlement.position = center
-		for i in range(6):
-			var angle := float(i) * TAU / 6.0
-			var offset := Vector3(cos(angle) * 10.0, 0.0, sin(angle) * 9.0)
-			_make_open_building("House_%02d" % (i + 1), center + offset, 6.0 if i % 2 == 0 else 7.0, 3.6, 6.0, wall, trim, roof)
+		for i in range(12):
+			var row := i / 4
+			var col := i % 4
+			var offset := Vector3((float(col) - 1.5) * 7.2, 0.0, (float(row) - 1.0) * 7.4)
+			_make_open_building("House_%02d" % (i + 1), center + offset, 6.0 if i % 2 == 0 else 6.5, 3.6, 6.0, wall, trim, roof)
 		var sign := Label3D.new()
 		sign.name = "VillageName"
 		sign.text = str(village["name"])
