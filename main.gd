@@ -749,6 +749,8 @@ func _on_bag_pressed() -> void:
 	var panel := get_node_or_null("MobileUI/BackpackPanel") as Control
 	if panel != null:
 		panel.visible = not panel.visible
+		if panel.visible:
+			_refresh_backpack()
 
 func _on_vehicle_pressed() -> void:
 	var ui := get_node_or_null("MobileUI")
