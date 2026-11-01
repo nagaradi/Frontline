@@ -681,24 +681,69 @@ func _add_backpack_panel(ui: CanvasLayer) -> void:
 		return
 	var panel := PanelContainer.new()
 	panel.name = "BackpackPanel"
-	panel.position = Vector2(20, 310)
-	panel.custom_minimum_size = Vector2(245, 230)
+	panel.position = Vector2(20, 300)
+	panel.custom_minimum_size = Vector2(300, 300)
 	panel.visible = false
 	panel.z_index = 55
 	ui.add_child(panel)
 	var column := VBoxContainer.new()
+	column.name = "BackpackColumn"
 	panel.add_child(column)
 	var title := Label.new()
-	title.text = "BACKPACK  •  LEVEL 1"
+	title.name = "BackpackTitle"
+	title.text = "BACKPACK"
 	column.add_child(title)
-	for item in ["Weapons: M416 / Pistol", "Ammo: current weapon", "First Aid / Med Kit", "Grenade / Smoke", "Energy Drink"]:
-		var label := Label.new()
-		label.text = item
-		column.add_child(label)
+	for key in ["WeaponRows", "AmmoRow", "HealRow", "ThrowRow", "CapacityRow"]:
+		var row := Label.new()
+		row.name = key
+		column.add_child(row)
+	var actions := HBoxContainer.new()
+	column.add_child(actions)
+	var use_aid := Button.new()
+	use_aid.text = "USE FIRST AID"
+	use_aid.pressed.connect(_on_backpack_use_aid)
+	actions.add_child(use_aid)
+	var upgrade := Button.new()
+	upgrade.text = "UPGRADE BAG"
+	upgrade.pressed.connect(_on_backpack_upgrade)
+	actions.add_child(upgrade)
 	var close := Button.new()
 	close.text = "CLOSE"
 	close.pressed.connect(func(): panel.visible = false)
 	column.add_child(close)
+	_refresh_backpack()
+
+func _refresh_backpack() -> void:
+	var panel := get_node_or_null("MobileUI/BackpackPanel")
+	if panel == null or not is_instance_valid(player):
+		return
+	var capacity := int(player.get("backpack_level")) if player.get("backpack_level") != null else 1
+	var title := panel.get_node_or_null("BackpackColumn/BackpackTitle") as Label
+	var weapons := panel.get_node_or_null("BackpackColumn/WeaponRows") as Label
+	var ammo_row := panel.get_node_or_null("BackpackColumn/AmmoRow") as Label
+	var heal := panel.get_node_or_null("BackpackColumn/HealRow") as Label
+	var throwables := panel.get_node_or_null("BackpackColumn/ThrowRow") as Label
+	var capacity_row := panel.get_node_or_null("BackpackColumn/CapacityRow") as Label
+	if title != null: title.text = "BACKPACK  •  LEVEL %d" % capacity
+	if weapons != null:
+		weapons.text = "WEAPON: %s" % str(player.get("weapon_names")[int(player.get("weapon_index"))])
+	if ammo_row != null: ammo_row.text = "AMMO: %d / %d" % [int(player.get("ammo")), int(player.get("reserve_ammo"))]
+	if heal != null:
+		heal.text = "FIRST AID %d  |  MED KIT %d  |  DRINK %d" % [int(player.get("first_aid_kits")), int(player.get("medkits")), int(player.get("energy_drinks"))]
+	if throwables != null:
+		throwables.text = "GRENADE %d  |  SMOKE %d" % [int(player.get("grenades")), int(player.get("smoke_grenades"))]
+	if capacity_row != null:
+		capacity_row.text = "CAPACITY: %d / %d" % [int(player.get("backpack_used")), 150 + (capacity - 1) * 150]
+
+func _on_backpack_use_aid() -> void:
+	if is_instance_valid(player) and player.has_method("use_first_aid"):
+		player.use_first_aid()
+	_refresh_backpack()
+
+func _on_backpack_upgrade() -> void:
+	if is_instance_valid(player) and player.has_method("upgrade_backpack"):
+		player.upgrade_backpack()
+	_refresh_backpack()
 
 func _on_bag_pressed() -> void:
 	var panel := get_node_or_null("MobileUI/BackpackPanel") as Control
@@ -1194,7 +1239,7 @@ func _add_hud_settings() -> void:
 	if ui == null or ui.get_node_or_null("HUDSettingsButton") != null:
 		return
 	_hud_layout_config.load("user://frontline_hud.cfg")
-	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton", "JumpButton", "CrouchButton", "ProneButton", "PeekLeftButton", "PeekRightButton", "MapButton", "BagButton", "EyeButton", "SprintButton"]:
 		var control := ui.get_node_or_null(node_name) as Control
 		if control != null and _hud_layout_config.has_section_key("hud", node_name):
 			control.position = _hud_layout_config.get_value("hud", node_name)
@@ -1227,7 +1272,7 @@ func _toggle_hud_edit() -> void:
 	var settings_button := ui.get_node_or_null("HUDSettingsButton") as Button
 	if settings_button != null:
 		settings_button.text = "DONE" if _hud_edit_mode else "HUD"
-	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton", "JumpButton", "CrouchButton", "ProneButton", "PeekLeftButton", "PeekRightButton", "MapButton", "BagButton", "EyeButton", "SprintButton"]:
 		var control := ui.get_node_or_null(node_name) as Control
 		if control != null:
 			control.modulate = Color(1.0, 0.88, 0.55, 1.0) if _hud_edit_mode else Color.WHITE
@@ -1236,7 +1281,7 @@ func _save_hud_layout() -> void:
 	var ui := get_node_or_null("MobileUI")
 	if ui == null:
 		return
-	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton", "JumpButton", "CrouchButton", "ProneButton", "PeekLeftButton", "PeekRightButton", "MapButton", "BagButton", "EyeButton", "SprintButton"]:
 		var control := ui.get_node_or_null(node_name) as Control
 		if control != null:
 			_hud_layout_config.set_value("hud", node_name, control.position)
@@ -1269,7 +1314,7 @@ func _hud_control_at(point: Vector2) -> Control:
 	var ui := get_node_or_null("MobileUI")
 	if ui == null:
 		return null
-	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton", "JumpButton", "CrouchButton", "ProneButton", "PeekLeftButton", "PeekRightButton", "MapButton", "BagButton", "EyeButton", "SprintButton"]:
 		var control := ui.get_node_or_null(node_name) as Control
 		if control != null and control.get_global_rect().has_point(point):
 			return control
