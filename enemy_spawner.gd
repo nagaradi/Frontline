@@ -1,11 +1,13 @@
 extends Node3D
 
 @export var spawn_interval: float = 18.0
+@export var first_enemy_delay: float = 180.0
 @export var max_enemies: int = 5
 @export var spawn_distance: float = 24.0
 
 const ENEMY_SCENE: PackedScene = preload("res://enemy.tscn")
 var spawn_timer: float = 0.0
+var match_elapsed: float = 0.0
 var player: CharacterBody3D
 
 func _ready() -> void:
@@ -14,6 +16,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player):
+		return
+	match_elapsed += delta
+	if match_elapsed < first_enemy_delay:
 		return
 	spawn_timer += delta
 	if spawn_timer < spawn_interval:
