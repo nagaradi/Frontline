@@ -490,8 +490,9 @@ func _fix_hud_layout() -> void:
 			continue
 		button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		button.position = button_positions[button_name]
-		button.size = Vector2(146, 56)
-		button.custom_minimum_size = Vector2(146, 56)
+		var round_size := Vector2(82, 82) if button_name in ["FireButton", "AimButton"] else Vector2(68, 68) if button_name == "ScopeButton" else Vector2(146, 56)
+		button.size = round_size
+		button.custom_minimum_size = round_size
 		button.add_theme_font_size_override("font_size", 18)
 		button.focus_mode = Control.FOCUS_NONE
 		var normal := StyleBoxFlat.new()
@@ -985,10 +986,11 @@ func _round_mobile_buttons(root: Node) -> void:
 		if child is Button:
 			var normal := StyleBoxFlat.new()
 			normal.bg_color = Color(0.045, 0.075, 0.09, 0.88)
-			normal.corner_radius_top_left = 28
-			normal.corner_radius_top_right = 28
-			normal.corner_radius_bottom_left = 28
-			normal.corner_radius_bottom_right = 28
+			var radius := int(minf(child.size.x, child.size.y) * 0.5) if child.name in ["FireButton", "AimButton", "ScopeButton", "HUDSettingsButton", "HUDSaveButton"] else 28
+			normal.corner_radius_top_left = radius
+			normal.corner_radius_top_right = radius
+			normal.corner_radius_bottom_left = radius
+			normal.corner_radius_bottom_right = radius
 			normal.border_width_left = 2
 			normal.border_width_top = 2
 			normal.border_width_right = 2
