@@ -239,11 +239,16 @@ func shoot() -> void:
 		print("SHOT FIRED - NO HIT")
 		return
 
-	var target = result.get("collider")
-	if target != null and target.has_method("take_damage"):
+	var target: Object = result.get("collider")
+	# Collision often belongs to a child hitbox; walk up to the enemy root.
+	while target is Node and not target.has_method("take_damage"):
+		target = (target as Node).get_parent()
+	if target is Node and target.has_method("take_damage"):
 		target.take_damage(damages[weapon_index])
 		_show_hit_marker()
-		print("HIT ENEMY: ", target.name)
+		print("HIT ENEMY: ", (target as Node).name)
+	else:
+		print("SHOT HIT: ", result.get("collider"))
 
 
 func reload() -> void:
