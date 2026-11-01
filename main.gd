@@ -191,30 +191,24 @@ func _setup_environment() -> void:
 	sun.directional_shadow_max_distance = 90.0
 
 func _setup_ground() -> void:
-	# Remove old nodes immediately; queue_free can leave a duplicate-name Ground2.
+	# Use a solid box mesh (not a single-sided plane) so the terrain is
+	# visible from every camera angle and has a matching walkable collider.
 	var old_ground := get_node_or_null("Ground")
 	if old_ground != null:
 		remove_child(old_ground)
 		old_ground.free()
 	var ground := MeshInstance3D.new()
 	ground.name = "Ground"
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(WORLD_SIZE, WORLD_SIZE)
-	plane.subdivide_width = 8
-	plane.subdivide_depth = 8
-	ground.mesh = plane
-	ground.position = Vector3(0.0, -0.12, 0.0)
+	var ground_mesh := BoxMesh.new()
+	ground_mesh.size = Vector3(WORLD_SIZE, 0.6, WORLD_SIZE)
+	ground.mesh = ground_mesh
+	ground.position = Vector3(0.0, -0.3, 0.0)
 	ground.visible = true
 	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var grass := StandardMaterial3D.new()
-	grass.albedo_color = Color(0.24, 0.34, 0.19, 1.0)
+	grass.albedo_color = Color(0.22, 0.34, 0.16, 1.0)
 	grass.roughness = 1.0
 	grass.metallic = 0.0
-	grass.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var grass_texture := load("res://assets/Textures/grass_ground.png") as Texture2D
-	if grass_texture != null:
-		grass.albedo_texture = grass_texture
-		grass.uv1_scale = Vector3(32.0, 32.0, 1.0)
 	ground.material_override = grass
 	add_child(ground)
 
@@ -224,15 +218,16 @@ func _setup_ground() -> void:
 		old_collision.free()
 	var body := StaticBody3D.new()
 	body.name = "GroundCollision"
-	body.position = Vector3(0.0, -0.38, 0.0)
+	body.position = Vector3(0.0, -0.3, 0.0)
 	body.collision_layer = 1
 	body.collision_mask = 1
 	add_child(body)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(WORLD_SIZE, 0.5, WORLD_SIZE)
+	shape.size = Vector3(WORLD_SIZE, 0.6, WORLD_SIZE)
 	collision.shape = shape
 	body.add_child(collision)
+	print("FRONTLINE_GROUND_READY size=", WORLD_SIZE, " top_y=0.0")
 
 func _rebuild_buildings() -> void:
 	for old_name in ["Building1", "Building2", "Building3", "CoverWall1", "CoverWall2"]:
