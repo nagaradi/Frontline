@@ -46,6 +46,7 @@ func _ready() -> void:
 	_fix_hud_layout()
 	_add_scope_button()
 	_round_mobile_buttons(get_node_or_null("MobileUI"))
+	_add_hud_settings()
 	apply_graphics_preset(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_fl_setup_multiplayer_lobby()
@@ -1000,3 +1001,108 @@ func _round_mobile_buttons(root: Node) -> void:
 			child.add_theme_stylebox_override("pressed", hover)
 			child.add_theme_font_size_override("font_size", 17)
 		_round_mobile_buttons(child)
+
+# HUD layout editor: drag controls, then save their positions locally.
+var _hud_edit_mode := false
+var _hud_drag_control: Control
+var _hud_drag_offset := Vector2.ZERO
+var _hud_layout_config := ConfigFile.new()
+
+func _add_hud_settings() -> void:
+	var ui := get_node_or_null("MobileUI") as CanvasLayer
+	if ui == null or ui.get_node_or_null("HUDSettingsButton") != null:
+		return
+	_hud_layout_config.load("user://frontline_hud.cfg")
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+		var control := ui.get_node_or_null(node_name) as Control
+		if control != null and _hud_layout_config.has_section_key("hud", node_name):
+			control.position = _hud_layout_config.get_value("hud", node_name)
+	var settings_button := Button.new()
+	settings_button.name = "HUDSettingsButton"
+	settings_button.text = "HUD"
+	settings_button.position = Vector2(get_viewport().get_visible_rect().size.x - 92.0, 178.0)
+	settings_button.size = Vector2(68.0, 56.0)
+	ui.add_child(settings_button)
+	settings_button.pressed.connect(_toggle_hud_edit)
+	_style_round_button(settings_button, 56.0)
+	var save_button := Button.new()
+	save_button.name = "HUDSaveButton"
+	save_button.text = "SAVE"
+	save_button.position = Vector2(get_viewport().get_visible_rect().size.x - 174.0, 178.0)
+	save_button.size = Vector2(68.0, 56.0)
+	save_button.visible = false
+	ui.add_child(save_button)
+	save_button.pressed.connect(_save_hud_layout)
+	_style_round_button(save_button, 56.0)
+
+func _toggle_hud_edit() -> void:
+	_hud_edit_mode = not _hud_edit_mode
+	var ui := get_node_or_null("MobileUI")
+	if ui == null:
+		return
+	var save_button := ui.get_node_or_null("HUDSaveButton") as Button
+	if save_button != null:
+		save_button.visible = _hud_edit_mode
+	var settings_button := ui.get_node_or_null("HUDSettingsButton") as Button
+	if settings_button != null:
+		settings_button.text = "DONE" if _hud_edit_mode else "HUD"
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+		var control := ui.get_node_or_null(node_name) as Control
+		if control != null:
+			control.modulate = Color(1.0, 0.88, 0.55, 1.0) if _hud_edit_mode else Color.WHITE
+
+func _save_hud_layout() -> void:
+	var ui := get_node_or_null("MobileUI")
+	if ui == null:
+		return
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+		var control := ui.get_node_or_null(node_name) as Control
+		if control != null:
+			_hud_layout_config.set_value("hud", node_name, control.position)
+	_hud_layout_config.save("user://frontline_hud.cfg")
+	_toggle_hud_edit()
+
+func _input(event: InputEvent) -> void:
+	if not _hud_edit_mode:
+		return
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_hud_drag_control = _hud_control_at(event.position)
+			if _hud_drag_control != null:
+				_hud_drag_offset = event.position - _hud_drag_control.position
+		else:
+			_hud_drag_control = null
+	elif event is InputEventScreenDrag and is_instance_valid(_hud_drag_control):
+		_hud_drag_control.position = event.position - _hud_drag_offset
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_hud_drag_control = _hud_control_at(event.position)
+			if _hud_drag_control != null:
+				_hud_drag_offset = event.position - _hud_drag_control.position
+		else:
+			_hud_drag_control = null
+	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and is_instance_valid(_hud_drag_control):
+		_hud_drag_control.position = event.position - _hud_drag_offset
+
+func _hud_control_at(point: Vector2) -> Control:
+	var ui := get_node_or_null("MobileUI")
+	if ui == null:
+		return null
+	for node_name in ["FireButton", "AimButton", "ReloadButton", "PickupButton", "WeaponSwitchButton", "GrenadeButton", "SmokeButton", "DrinkButton", "FirstAidButton", "MedKitButton", "ScopeButton"]:
+		var control := ui.get_node_or_null(node_name) as Control
+		if control != null and control.get_global_rect().has_point(point):
+			return control
+	return null
+
+func _style_round_button(button: Button, diameter: float) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.045, 0.075, 0.09, 0.90)
+	style.border_color = Color(0.72, 0.82, 0.76, 0.95)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(int(diameter * 0.5))
+	button.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.15, 0.25, 0.20, 0.98)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+
