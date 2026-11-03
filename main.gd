@@ -147,8 +147,8 @@ func _spawn_weapon_pickups() -> void:
 	if is_instance_valid(player):
 		var weapon_list: Array = player.get("weapon_names")
 		var village_centers: Array[Vector3] = [
-			Vector3(-62,0,-58), Vector3(0,0,-70), Vector3(62,0,-58), Vector3(-72,0,0),
-			Vector3(72,0,0), Vector3(-62,0,60), Vector3(0,0,72), Vector3(62,0,60)
+			Vector3(-390,0,-390), Vector3(0,0,-420), Vector3(390,0,-390), Vector3(-440,0,0),
+			Vector3(440,0,0), Vector3(-390,0,390), Vector3(0,0,420), Vector3(390,0,390)
 		]
 		for index in range(6, weapon_list.size()):
 			var center: Vector3 = village_centers[index % village_centers.size()]
@@ -1145,7 +1145,7 @@ func _build_drop_parachute() -> void:
 
 
 func _add_eight_villages() -> void:
-	# Eight named settlements distributed around the playable 260m map.
+	# Eight named settlements distributed across the 1260m battlefield.
 	var village_data: Array[Dictionary] = [
 		{"name":"POCHINKI","center":Vector3(-62,0,-58)},
 		{"name":"ROZHOK","center":Vector3(0,0,-70)},
