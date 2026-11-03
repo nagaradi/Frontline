@@ -311,7 +311,11 @@ func _add_world_details() -> void:
 		road_material.albedo_texture = road_texture
 	road_material.uv1_scale = Vector3(1.0, 1.0, 1.0)
 	_add_visual_box(self, "MainRoad", Vector3(0, 0.025, -12), Vector3(8.0, 0.05, 1120.0), road_material)
-	for z in range(-45, 24, 7):
+	# A perpendicular connector makes the central settlements reachable by road.
+	_add_visual_box(self, "CrossRoad", Vector3(0, 0.026, 0), Vector3(1120.0, 0.05, 8.0), road_material)
+	for x in range(-550, 551, 14):
+		_add_visual_box(self, "CrossRoadMark", Vector3(float(x), 0.058, 0.0), Vector3(2.8, 0.02, 0.14), _material(Color(0.78, 0.73, 0.52)))
+	for z in range(-550, 551, 14):
 		_add_visual_box(self, "RoadMark", Vector3(0, 0.058, float(z)), Vector3(0.14, 0.02, 2.8), _material(Color(0.78, 0.73, 0.52)))
 	# Tree clusters around the playable area; keep the spawn and road clear.
 	for i in range(180):
