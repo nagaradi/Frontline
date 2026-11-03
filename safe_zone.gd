@@ -1,13 +1,13 @@
 
 extends Node3D
 
-@export var start_radius: float = 125.0
-@export var final_radius: float = 12.0
+@export var start_radius: float = 600.0
+@export var final_radius: float = 35.0
 @export var shrink_duration: float = 600.0
 @export var damage_interval: float = 2.0
 @export var outside_damage: float = 5.0
 
-var current_radius: float = 125.0
+var current_radius: float = 600.0
 var elapsed_time: float = 0.0
 var damage_timer: float = 0.0
 var player: CharacterBody3D
@@ -32,7 +32,7 @@ func _process(delta: float) -> void:
 	elapsed_time += delta
 	damage_timer += delta
 
-	# Hold the full-map circle for 3 minutes, then shrink over 10 minutes.
+	# Hold the full 1260m battlefield circle for 3 minutes, then shrink over 10 minutes.
 	var shrink_elapsed: float = maxf(elapsed_time - 180.0, 0.0)
 	var progress: float = clampf(shrink_elapsed / shrink_duration, 0.0, 1.0)
 
