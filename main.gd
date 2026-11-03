@@ -310,13 +310,13 @@ func _add_world_details() -> void:
 	if road_texture != null:
 		road_material.albedo_texture = road_texture
 	road_material.uv1_scale = Vector3(1.0, 1.0, 1.0)
-	_add_visual_box(self, "MainRoad", Vector3(0, 0.025, -12), Vector3(7.0, 0.05, 72.0), road_material)
+	_add_visual_box(self, "MainRoad", Vector3(0, 0.025, -12), Vector3(8.0, 0.05, 1120.0), road_material)
 	for z in range(-45, 24, 7):
 		_add_visual_box(self, "RoadMark", Vector3(0, 0.058, float(z)), Vector3(0.14, 0.02, 2.8), _material(Color(0.78, 0.73, 0.52)))
 	# Tree clusters around the playable area; keep the spawn and road clear.
-	for i in range(64):
+	for i in range(180):
 		var angle := float(i) * 2.399963
-		var radius := 24.0 + float((i * 17) % 35)
+		var radius := 220.0 + float((i * 37) % 360)
 		var x := cos(angle) * radius
 		var z := sin(angle) * radius
 		if absf(x) < 8.0 or (absf(x) < 11.0 and absf(z + 12.0) < 38.0):
@@ -344,7 +344,7 @@ func _add_world_details() -> void:
 		crown.position.y = 2.25
 		tree.add_child(crown)
 	for i in range(24):
-		var x := sin(float(i) * 13.7) * 78.0
+		var x := sin(float(i) * 13.7) * 590.0
 		var z := cos(float(i) * 8.3) * 78.0
 		var hill := MeshInstance3D.new()
 		hill.name = "DistantHill_%02d" % i
@@ -357,9 +357,9 @@ func _add_world_details() -> void:
 		hill.scale = Vector3(12.0 + float(i % 4) * 3.0, 4.0 + float(i % 3), 10.0 + float(i % 5) * 2.0)
 		hill.position = Vector3(x, -1.4, z)
 		add_child(hill)
-	for i in range(40):
+	for i in range(120):
 		var angle := float(i) * 2.17
-		var radius := 12.0 + float((i * 11) % 68)
+		var radius := 18.0 + float((i * 11) % 560)
 		var rock := MeshInstance3D.new()
 		rock.name = "Rock_%02d" % i
 		rock.add_to_group("world_detail")
