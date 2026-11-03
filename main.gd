@@ -1210,6 +1210,13 @@ func _add_eight_villages() -> void:
 			var col := i % 4
 			var offset := Vector3((float(col) - 1.5) * 7.2, 0.0, (float(row) - 1.0) * 7.4)
 			_make_open_building("House_%02d" % (i + 1), center + offset, 6.0 if i % 2 == 0 else 6.5, 3.6, 6.0, wall, trim, roof)
+			# Place collectible supply crates inside selected houses, away from the doorway.
+			if i == 1 or i == 5 or i == 9:
+				var supply := LOOT_SCRIPT.new() as Node3D
+				supply.name = "IndoorSupply_%s_%02d" % [str(village["name"]), i + 1]
+				supply.set("supply_name", "FIRST AID + AMMO")
+				add_child(supply)
+				supply.global_position = center + offset + Vector3(0.0, 0.0, -1.0)
 		var sign := Label3D.new()
 		sign.name = "VillageName"
 		sign.text = str(village["name"])
