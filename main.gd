@@ -1147,14 +1147,14 @@ func _build_drop_parachute() -> void:
 func _add_eight_villages() -> void:
 	# Eight named settlements distributed across the 1260m battlefield.
 	var village_data: Array[Dictionary] = [
-		{"name":"POCHINKI","center":Vector3(-62,0,-58)},
-		{"name":"ROZHOK","center":Vector3(0,0,-70)},
-		{"name":"SCHOOL","center":Vector3(62,0,-58)},
-		{"name":"GEORGOPOL","center":Vector3(-72,0,0)},
-		{"name":"YASNAYA POLYANA","center":Vector3(72,0,0)},
-		{"name":"GATKA","center":Vector3(-62,0,60)},
-		{"name":"PRIMORSK","center":Vector3(0,0,72)},
-		{"name":"LIPOVKA","center":Vector3(62,0,60)}
+		{"name":"POCHINKI","center":Vector3(-390,0,-390)},
+		{"name":"ROZHOK","center":Vector3(0,0,-420)},
+		{"name":"SCHOOL","center":Vector3(390,0,-390)},
+		{"name":"GEORGOPOL","center":Vector3(-440,0,0)},
+		{"name":"YASNAYA POLYANA","center":Vector3(440,0,0)},
+		{"name":"GATKA","center":Vector3(-390,0,390)},
+		{"name":"PRIMORSK","center":Vector3(0,0,420)},
+		{"name":"LIPOVKA","center":Vector3(390,0,390)}
 	]
 	var wall := _material(Color(0.58,0.52,0.42))
 	var trim := _material(Color(0.29,0.30,0.27))
