@@ -273,7 +273,34 @@ func _make_open_building(building_name: String, pos: Vector3, width: float, heig
 	_add_solid(house, "InteriorLintel", Vector3(0, height * 0.72 - 0.12, 0.0), Vector3(inner_gap, 0.24, 0.18), trim)
 	# Low interior counter gives the rooms recognizable cover and scale.
 	_add_solid(house, "InteriorCounter", Vector3(width * 0.28, 0.52, -depth * 0.22), Vector3(maxf(1.0, width * 0.22), 1.04, 0.65), trim)
-	_add_solid(house, "Roof", Vector3(0, height + 0.18, 0), Vector3(width + 0.35, 0.36, depth + 0.35), roof)
+	var house_number := int(building_name.get_slice("_", 1)) if building_name.contains("_") else 1
+	var double_storey := house_number % 2 == 0
+	if double_storey:
+		# Walkable staircase: 15 solid steps rise to the upper floor.
+		var stair_x := -width * 0.27
+		var step_count := 15
+		var step_run := (depth - 0.7) / float(step_count)
+		for step_index in range(step_count):
+			var step_height := height * float(step_index + 1) / float(step_count)
+			var step_z := depth * 0.42 - (float(step_index) + 0.5) * step_run
+			_add_solid(house, "StairStep_%02d" % step_index, Vector3(stair_x, step_height * 0.5, step_z), Vector3(1.15, step_height, step_run + 0.04), trim)
+		# Upper floor is split to leave a stairwell opening beside the stairs.
+		var left_width := maxf(0.35, width * 0.22)
+		_add_solid(house, "UpperFloor_Left", Vector3(-width * 0.5 + left_width * 0.5, height, 0), Vector3(left_width, 0.22, depth), trim)
+		var right_start := stair_x + 0.82
+		var right_width := width * 0.5 - right_start
+		if right_width > 0.4:
+			_add_solid(house, "UpperFloor_Right", Vector3(right_start + right_width * 0.5, height, 0), Vector3(right_width, 0.22, depth), trim)
+		_add_solid(house, "StairTopLanding", Vector3(stair_x + 0.62, height, -depth * 0.39), Vector3(1.35, 0.22, 1.0), trim)
+		var upper_y := height + height * 0.5
+		_add_solid(house, "UpperBackWall", Vector3(0, upper_y, -depth / 2.0), Vector3(width, height, 0.24), wall)
+		_add_solid(house, "UpperLeftWall", Vector3(-width / 2.0, upper_y, 0), Vector3(0.24, height, depth), wall)
+		_add_solid(house, "UpperRightWall", Vector3(width / 2.0, upper_y, 0), Vector3(0.24, height, depth), wall)
+		_add_solid(house, "UpperFrontLeft", Vector3(-width * 0.31, upper_y, depth / 2.0), Vector3(width * 0.38, height, 0.24), wall)
+		_add_solid(house, "UpperFrontRight", Vector3(width * 0.31, upper_y, depth / 2.0), Vector3(width * 0.38, height, 0.24), wall)
+		_add_solid(house, "UpperRoof", Vector3(0, height * 2.0 + 0.18, 0), Vector3(width + 0.35, 0.36, depth + 0.35), roof)
+	else:
+		_add_solid(house, "Roof", Vector3(0, height + 0.18, 0), Vector3(width + 0.35, 0.36, depth + 0.35), roof)
 	# Simple contrasting window panels are visual only.
 	_add_visual_box(house, "Window_Back", Vector3(0, height * 0.58, -depth / 2.0 - 0.13), Vector3(1.25, 0.75, 0.035), _material(Color(0.10, 0.17, 0.20), 0.3))
 
