@@ -265,6 +265,14 @@ func _make_open_building(building_name: String, pos: Vector3, width: float, heig
 	_add_solid(house, "FrontLeft", Vector3(-(door_width + segment_width) / 2.0, height / 2.0, depth / 2.0), Vector3(segment_width, height, 0.24), wall)
 	_add_solid(house, "FrontRight", Vector3((door_width + segment_width) / 2.0, height / 2.0, depth / 2.0), Vector3(segment_width, height, 0.24), wall)
 	_add_solid(house, "DoorLintel", Vector3(0, height - 0.35, depth / 2.0), Vector3(door_width, 0.7, 0.24), wall)
+	# Interior divider creates two connected rooms while keeping a walk-through opening.
+	var inner_gap := 1.35
+	var inner_segment := (width - inner_gap) / 2.0
+	_add_solid(house, "InteriorDividerLeft", Vector3(-(inner_gap + inner_segment) / 2.0, height / 2.0, 0.0), Vector3(inner_segment, height * 0.72, 0.18), wall)
+	_add_solid(house, "InteriorDividerRight", Vector3((inner_gap + inner_segment) / 2.0, height / 2.0, 0.0), Vector3(inner_segment, height * 0.72, 0.18), wall)
+	_add_solid(house, "InteriorLintel", Vector3(0, height * 0.72 - 0.12, 0.0), Vector3(inner_gap, 0.24, 0.18), trim)
+	# Low interior counter gives the rooms recognizable cover and scale.
+	_add_solid(house, "InteriorCounter", Vector3(width * 0.28, 0.52, -depth * 0.22), Vector3(maxf(1.0, width * 0.22), 1.04, 0.65), trim)
 	_add_solid(house, "Roof", Vector3(0, height + 0.18, 0), Vector3(width + 0.35, 0.36, depth + 0.35), roof)
 	# Simple contrasting window panels are visual only.
 	_add_visual_box(house, "Window_Back", Vector3(0, height * 0.58, -depth / 2.0 - 0.13), Vector3(1.25, 0.75, 0.035), _material(Color(0.10, 0.17, 0.20), 0.3))
